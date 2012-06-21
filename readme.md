@@ -29,9 +29,9 @@ Detailed documentation is available on the [Wiki](https://github.com/bhoeckendor
     Logarithmic scaling of images with higher dynamic range to 8bit.
 
   - Make Isotropic  
-    Scale an image or a volume to isotropic sampling, with bicubic interpolation.
+    Scales an image or a volume to isotropic sampling, with bicubic interpolation.
 
-  - Orthogonal Porject  
+  - Orthogonal Project  
     Fast and memory-friendly maximum intensity projections along X and Y dimensions without turning the volume.
     
   - Unlock Image  
