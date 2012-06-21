@@ -59,6 +59,8 @@ public class MakeIsotropic implements PlugInFilter {
 		final int outputDepth = (int)Math.round(inputImp.getStackSize() * voxelScaleZ);
 		
 		IJ.run(inputImp, "Scale...", "x=" + voxelScaleX + " y=" + voxelScaleY + " z=" + voxelScaleZ + " width=" + outputWidth + " height=" + outputHeight + " depth=" + outputDepth + " interpolation=Bicubic average process create title=isotropic.tif");
+		ImagePlus outputImp = IJ.getImage();
+		outputImp.getProcessor().setLut(inputImp.getProcessor().getLut());
 	}
 
 }
