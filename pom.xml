@@ -20,7 +20,7 @@
 		<dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>ij</artifactId>
-			<version>1.46p</version>
+			<version>1.46q</version>
 		</dependency>
 		<dependency>
 			<groupId>net.imglib2</groupId>
