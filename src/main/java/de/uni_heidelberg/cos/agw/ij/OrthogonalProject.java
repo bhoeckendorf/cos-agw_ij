@@ -128,7 +128,8 @@ public class OrthogonalProject implements PlugInFilter {
 		// at this point. Since the scaled result is shown automatically,
 		// close outputImp without ever showing it.
 		if (doScaleImage) {
-			scaleImage(outputImp);
+			MakeIsotropic isotropifyer = new MakeIsotropic();
+			isotropifyer.run(outputImp);
 			if (outputImp.isVisible())
 				outputImp.close();
 		}
@@ -260,31 +261,23 @@ public class OrthogonalProject implements PlugInFilter {
 
 	// Sets voxel size metadata of the output image to the flipped voxel
 	// size of the input image. Then updated image and displaying window.
+	// The pixelDepth needs to be the smaller value of width and height,
+	// so that scaling to isotropic sampling won't scale Z, which would
+	// correspond to time and channels.
 	private void setOutputCalibration(ImagePlus outputImp) {
 		Calibration calibration = outputImp.getCalibration();
 		calibration.setUnit(unitOfLength);
 		if (directionIndex == 0) {
 			calibration.pixelWidth = voxelSizeZ;
 			calibration.pixelHeight = voxelSizeY;
+			calibration.pixelDepth = voxelSizeY < voxelSizeZ ? voxelSizeY : voxelSizeZ;
 		}
 		else {
 			calibration.pixelWidth = voxelSizeX;
 			calibration.pixelHeight = voxelSizeZ;
+			calibration.pixelDepth = voxelSizeX < voxelSizeZ ? voxelSizeX : voxelSizeZ;
 		}
 		outputImp.updateAndRepaintWindow();
-	}
-
-	
-	// Scale image to isotropic sampling.
-	private void scaleImage(ImagePlus outputImp) {
-		Calibration calibration = outputImp.getCalibration();
-		double voxelSizeX = calibration.pixelWidth;
-		double voxelSizeY = calibration.pixelHeight;
-		double smallerSize = voxelSizeX < voxelSizeY ? voxelSizeX : voxelSizeY;
-		double voxelScaleX = voxelSizeX / smallerSize;
-		double voxelScaleY = voxelSizeY / smallerSize;
-
-		IJ.run(outputImp, "Scale...", "x=" + voxelScaleX + " y=" + voxelScaleY + " interpolation=Bicubic average process create title=[" + outputImp.getTitle() + "]");		
 	}
 
 }

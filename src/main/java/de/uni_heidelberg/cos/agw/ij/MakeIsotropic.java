@@ -51,16 +51,23 @@ public class MakeIsotropic implements PlugInFilter {
 		if (voxelSizeZ < smallestSize)
 			smallestSize = voxelSizeZ;
 		
-		final double voxelScaleX = voxelSizeX / smallestSize;
-		final double voxelScaleY = voxelSizeY / smallestSize;
-		final double voxelScaleZ = voxelSizeZ / smallestSize;
-		final int outputWidth = (int)Math.round(inputImp.getWidth() * voxelScaleX);
-		final int outputHeight = (int)Math.round(inputImp.getHeight() * voxelScaleY);
-		final int outputDepth = (int)Math.round(inputImp.getStackSize() * voxelScaleZ);
+		final double scaleX = voxelSizeX / smallestSize;
+		final double scaleY = voxelSizeY / smallestSize;
+		final double scaleZ = voxelSizeZ / smallestSize;
+		final int outputWidth = (int)Math.round(inputImp.getWidth() * scaleX);
+		final int outputHeight = (int)Math.round(inputImp.getHeight() * scaleY);
+		final int outputDepth = (int)Math.round(inputImp.getStackSize() * scaleZ);
+		final String outputTitle = inputImp.getTitle() + "-isotropic";
 		
-		IJ.run(inputImp, "Scale...", "x=" + voxelScaleX + " y=" + voxelScaleY + " z=" + voxelScaleZ + " width=" + outputWidth + " height=" + outputHeight + " depth=" + outputDepth + " interpolation=Bicubic average process create title=isotropic.tif");
+		IJ.run(inputImp, "Scale...", "x=" + scaleX + " y=" + scaleY + " z=" + scaleZ + " width=" + outputWidth + " height=" + outputHeight + " depth=" + outputDepth + " interpolation=Bicubic average process create title=" + outputTitle);
 		ImagePlus outputImp = IJ.getImage();
 		outputImp.getProcessor().setLut(inputImp.getProcessor().getLut());
+	}
+	
+	
+	public void run(ImagePlus imp) {
+		inputImp = imp;
+		run(inputImp.getProcessor());
 	}
 
 }
