@@ -41,25 +41,22 @@ public class MakeIsotropic implements PlugInFilter {
 	@Override
 	public void run(ImageProcessor ip) {
 		Calibration calibration = inputImp.getCalibration();
-		final double voxelSizeX = calibration.pixelWidth;
-		final double voxelSizeY = calibration.pixelHeight;
-		final double voxelSizeZ = calibration.pixelDepth;
-		
-		double smallestSize = voxelSizeX;
-		if (voxelSizeY < smallestSize)
-			smallestSize = voxelSizeY;
-		if (voxelSizeZ < smallestSize)
-			smallestSize = voxelSizeZ;
-		
-		final double scaleX = voxelSizeX / smallestSize;
-		final double scaleY = voxelSizeY / smallestSize;
-		final double scaleZ = voxelSizeZ / smallestSize;
-		final int outputWidth = (int)Math.round(inputImp.getWidth() * scaleX);
-		final int outputHeight = (int)Math.round(inputImp.getHeight() * scaleY);
-		final int outputDepth = (int)Math.round(inputImp.getStackSize() * scaleZ);
+		double[] anisotropy = { calibration.pixelWidth, calibration.pixelHeight, calibration.pixelDepth };
+		double smallest = anisotropy[0];
+		for (int i = 1; i < anisotropy.length; ++i) {
+			if (anisotropy[i] < smallest)
+				smallest = anisotropy[i];
+		}
+		for (int i = 0; i < anisotropy.length; ++i)
+			anisotropy[i] /= smallest;
+
+		int[] dimensions = { inputImp.getWidth(), inputImp.getHeight(), inputImp.getStackSize() };
+		for (int i = 0; i < dimensions.length; ++i)
+			dimensions[i] = (int)Math.round(dimensions[i] * anisotropy[i]);
+
 		final String outputTitle = inputImp.getTitle() + "-isotropic";
 		
-		IJ.run(inputImp, "Scale...", "x=" + scaleX + " y=" + scaleY + " z=" + scaleZ + " width=" + outputWidth + " height=" + outputHeight + " depth=" + outputDepth + " interpolation=Bicubic average process create title=" + outputTitle);
+		IJ.run(inputImp, "Scale...", "x=" + anisotropy[0] + " y=" + anisotropy[1] + " z=" + anisotropy[2] + " width=" + dimensions[0] + " height=" + dimensions[1] + " depth=" + dimensions[2] + " interpolation=Bicubic average process create title=" + outputTitle);
 		ImagePlus outputImp = IJ.getImage();
 		outputImp.getProcessor().setLut(inputImp.getProcessor().getLut());
 	}
