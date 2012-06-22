@@ -19,6 +19,7 @@
 
 package de.uni_heidelberg.cos.agw.ij;
 
+import de.uni_heidelberg.cos.agw.ij.util.Util;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.measure.Calibration;
@@ -54,8 +55,7 @@ public class MakeIsotropic implements PlugInFilter {
 		for (int i = 0; i < dimensions.length; ++i)
 			dimensions[i] = (int)Math.round(dimensions[i] * anisotropy[i]);
 
-		final String outputTitle = inputImp.getTitle() + "-isotropic";
-		
+		final String outputTitle = Util.addToFilename(inputImp.getTitle(), "-isotropic");
 		IJ.run(inputImp, "Scale...", "x=" + anisotropy[0] + " y=" + anisotropy[1] + " z=" + anisotropy[2] + " width=" + dimensions[0] + " height=" + dimensions[1] + " depth=" + dimensions[2] + " interpolation=Bicubic average process create title=" + outputTitle);
 		ImagePlus outputImp = IJ.getImage();
 		outputImp.getProcessor().setLut(inputImp.getProcessor().getLut());

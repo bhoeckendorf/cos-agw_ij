@@ -19,6 +19,7 @@
 
 package de.uni_heidelberg.cos.agw.ij;
 
+import de.uni_heidelberg.cos.agw.ij.util.Util;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -102,6 +103,8 @@ public class Logarithmic8Bit implements PlugInFilter {
 		else
 			new ImageConverter(inputImp).convertToGray8();
 		}
+		
+		inputImp.setTitle(Util.addToFilename(inputImp.getTitle(), "-log"));
 	}
 	
 	

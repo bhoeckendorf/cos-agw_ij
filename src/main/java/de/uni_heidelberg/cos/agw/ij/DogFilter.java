@@ -19,6 +19,7 @@
 
 package de.uni_heidelberg.cos.agw.ij;
 
+import de.uni_heidelberg.cos.agw.ij.util.Util;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
@@ -82,7 +83,7 @@ public class DogFilter<T extends NumericType<T> & NativeType<T> & RealType<T>> i
 		sigma1Imp.close();
 		sigma2Imp.close();
 		
-		resultImp.setTitle(inputImp.getTitle() + String.format("_DoG-%.1f-%.1f", sigma1, sigma2));
+		resultImp.setTitle(Util.addToFilename(inputImp.getTitle(), String.format("-DoG-%.1f-%.1f", sigma1, sigma2)));
 		resultImp.setSlice(currentPlane);
 		resultImp.setCalibration(calibration);
 		resultImp.show();
