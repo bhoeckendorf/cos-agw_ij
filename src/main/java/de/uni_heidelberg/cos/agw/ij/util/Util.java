@@ -25,7 +25,7 @@ public class Util {
 	
 	public static String addToFilename(String filename, String addition) {
 		final int dotIdx = filename.lastIndexOf(".");
-		if (dotIdx < filename.length() - 6)
+		if (dotIdx < 0 || dotIdx < filename.length() - 6)
 			return filename + addition;
 		return filename.substring(0, dotIdx) + addition + filename.substring(dotIdx);
 	}
