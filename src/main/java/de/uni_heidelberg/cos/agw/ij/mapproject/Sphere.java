@@ -19,8 +19,6 @@
 
 package de.uni_heidelberg.cos.agw.ij.mapproject;
 
-import ij.IJ;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,29 +26,41 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.media.j3d.Transform3D;
+import javax.vecmath.Matrix3d;
+import javax.vecmath.Point3d;
 import javax.vecmath.Point3i;
+import javax.vecmath.Vector3d;
 
 
 public class Sphere {
 	
-	private static Point3i center = new Point3i(0, 0, 0);
+	private static final Point3i center = new Point3i(0, 0, 0);
+	private static final Vector3d vector = new Vector3d(center.x, center.y, center.z);
 	private int radius = 0;
-	private static IntensityProjector projector = null;
+	private static IntensityProjector projector;
 	private Map<Point3i, Double> valuesCache = new HashMap<Point3i, Double>();
-	
-	public static double
-//		poleOffsetPhi = 0,
-//		poleOffsetTheta = 0,
+	private static double
+		poleOffset = 0,
 		zeroMeridianOffset = 0;
+	private static final Matrix3d poleOffsetMatrix = new Matrix3d();
+	private static Transform3D transform;
 
 	
 	public Sphere(int radius) {
 		setRadius(radius);
+		poleOffsetMatrix.rotY(poleOffset);
 	}
 	
 		
-	public static void setCenter(Point3i center) {
-		Sphere.center = new Point3i(center.x - 1, center.y - 1, center.z);
+	public static void setCenter(Point3i point) {
+		center.x = point.x - 1;
+		center.y = point.y - 1;
+		center.z = point.y;
+		vector.x = center.x;
+		vector.y = center.y;
+		vector.z = center.z;
+		transform = new Transform3D(poleOffsetMatrix, vector, 1d);
 	}
 
 	
@@ -72,6 +82,18 @@ public class Sphere {
 	public static void setIntensityProjector(IntensityProjector projector) {
 		Sphere.projector = projector; 
 	}
+	
+
+	public static void setPoleOffset(double degrees) {
+		poleOffset = Math.toRadians(degrees);
+		poleOffsetMatrix.rotY(poleOffset);
+		transform = new Transform3D(poleOffsetMatrix, vector, 1d);
+	}
+	
+	
+	public static double getPoleOffset() {
+		return Math.toDegrees(poleOffset);
+	}
 
 	
 	public static void setZeroMeridianOffset(double degrees) {
@@ -89,7 +111,7 @@ public class Sphere {
 	}
 	
 	
-	public List<Point3i> voxelsOfPhi(double phi, double stepSizeInRadians) {
+	private List<Point3i> voxelsOfPhi(double phi, double stepSizeInRadians) {
 		Set<Point3i> set = new HashSet<Point3i>();
 		List<Point3i> list = new ArrayList<Point3i>();
 		for (double theta = 0; theta < 2*Math.PI; theta += stepSizeInRadians) {
@@ -101,7 +123,7 @@ public class Sphere {
 	}
 	
 	
-	public List<Point3i> voxelsOfTheta(double theta, double stepSizeInRadians) {
+	private List<Point3i> voxelsOfTheta(double theta, double stepSizeInRadians) {
 		Set<Point3i> set = new HashSet<Point3i>();
 		List<Point3i> list = new ArrayList<Point3i>();
 		for (double phi = 0; phi < 2*Math.PI; phi += stepSizeInRadians) {
@@ -123,59 +145,18 @@ public class Sphere {
 		return value;
 	}
 
-	
+
 	public Point3i sphericalToCartesianGrid(double phi, double theta) {
-//		phi += Math.cos(theta) * poleOffsetPhi;
-//		theta += poleOffsetTheta;
-//		theta += Math.cos(theta) * poleOffsetPhi;
 		theta += zeroMeridianOffset;
 		final double radiusSinPhi = radius * Math.sin(phi);
-		int x = (int)Math.round( radiusSinPhi * Math.cos(theta) + center.x );
-		int y = (int)Math.round( radiusSinPhi * Math.sin(theta) + center.y );
-		int z = (int)Math.round( radius * Math.cos(phi) + center.z );
-		return new Point3i(x, y, z);
+		double x = radiusSinPhi * Math.cos(theta);
+		double y = radiusSinPhi * Math.sin(theta);
+		double z = radius * Math.cos(phi);
+
+		Point3d point = new Point3d(x, y, z);
+		transform.transform(point);
+		
+		return new Point3i((int)Math.round(point.x), (int)Math.round(point.y), (int)Math.round(point.z));
 	}
-	
-	
-	public Set<Point3i> getAllSurfaceVoxels() {
-		IJ.showStatus("Computing all unit sphere surface voxels ...");
-		double minStepSizeRad = (2*Math.PI / getVoxelCountAtEquator()) * 0.75;
-		Set<Point3i> set = new HashSet<Point3i>();
-		for (double phi = 0; phi <= Math.PI; phi += minStepSizeRad) {
-			for (double theta = 0d; theta < 2*Math.PI; theta += minStepSizeRad) {
-				Point3i point = sphericalToCartesianGrid(phi, theta);
-				set.add(point);
-			}
-			IJ.showProgress(phi / Math.PI);
-		}
-		return set;
-	}
-	
-	
-//	public Point3d cartesianToSpherical(double x, double y, double z) {
-//		x -= center.x;
-//		y -= center.y;
-//		z -= center.z;
-//		double r = Math.sqrt( Math.pow(x,2) + Math.pow(y,2) + Math.pow(z,2) );
-//		double phi = Math.acos(z / r);
-//		double theta = Math.atan2(y, x);
-//		if (theta < 0)
-//			theta += 2 * Math.PI;
-//		return new Point3d(phi, theta, r);
-//	}
-//	
-//	
-//	public void dirtyDebugCoordinateConversion() {
-//		for (double phi = Math.toRadians(0.0); phi <= Math.toRadians(360.0); phi += initialStepSizeToBruteforceHemicircleRad * 500) {
-//			for (double theta = Math.toRadians(0.0); theta <= Math.toRadians(360.0); theta += initialStepSizeToBruteforceHemicircleRad * 500) {
-//				Point3d cartesian = sphericalToCartesianSubgrid(phi, theta);
-//				Point3d spherical = cartesianToSpherical(cartesian.x, cartesian.y, cartesian.z);
-//				Point3d turnedCartesian = sphericalToCartesianSubgrid(spherical.x, spherical.y);
-//				IJ.log(String.format("%.2f, %.2f, %.2f   -->   %.2f, %.2f, %.2f", Math.toDegrees(phi), Math.toDegrees(theta), (float)radius, cartesian.x, cartesian.y, cartesian.z));
-//				IJ.log(String.format("%.2f, %.2f, %.2f   -->   %.2f, %.2f, %.2f", Math.toDegrees(spherical.x), Math.toDegrees(spherical.y), spherical.z, turnedCartesian.x, turnedCartesian.y, turnedCartesian.z));
-//				IJ.log("");
-//			}
-//		}
-//	}
-	
+
 }

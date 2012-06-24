@@ -49,14 +49,13 @@ public class MapProject implements PlugInFilter {
 	@Override
 	public void run(ImageProcessor inputIp) {
 		GenericDialogPlus dialog = new GenericDialogPlus("World Map Project");
-		dialog.addNumericField("Center X", 480, 0, 4, "voxel");
-		dialog.addNumericField("Center Y", 430, 0, 4, "voxel");
-		dialog.addNumericField("Center Z", 380, 0, 4, "voxel");
+		dialog.addNumericField("Center_x", 480, 0, 4, "voxel");
+		dialog.addNumericField("Center_y", 430, 0, 4, "voxel");
+		dialog.addNumericField("Center_z", 380, 0, 4, "voxel");
 		dialog.addNumericField("Radius", 330, 0, 4, "voxel");
-		dialog.addNumericField("Scaling", 1.0, 1, 4, "x");
-//		dialog.addNumericField("Pole Offset Phi", 0, 1);
-//		dialog.addNumericField("Pole Offset Theta", 0, 1);
-		dialog.addNumericField("Zero Meridian Offset", Sphere.getZeroMeridianOffset(), 1, 4, "degrees");
+		dialog.addNumericField("Pole_offset", 0, 1, 4, "degrees");
+		dialog.addNumericField("Zero_meridian_offset", 0, 1, 4, "degrees");
+		dialog.addNumericField("Scaling", 1, 1, 4, "x");
 		dialog.showDialog();
 		if(dialog.wasCanceled())
 			return;
@@ -65,21 +64,19 @@ public class MapProject implements PlugInFilter {
 		int centerY = (int)Math.round(dialog.getNextNumber());
 		int centerZ = (int)Math.round(dialog.getNextNumber());
 		int radius = (int)Math.round(dialog.getNextNumber());
-		double scaling = dialog.getNextNumber();
-//		double poleOffsetPhi = dialog.getNextNumber();
-//		double poleOffsetTheta = dialog.getNextNumber();
+		double poleOffset = dialog.getNextNumber();
 		double zeroMeridianOffset = dialog.getNextNumber();
+		double scaling = dialog.getNextNumber();
 		
 		Sphere.setCenter(new Point3i(centerX, centerY, centerZ));
-//		Sphere.poleOffsetPhi = Math.toRadians(poleOffsetPhi);
-//		Sphere.poleOffsetTheta = Math.toRadians(poleOffsetTheta);
+		Sphere.setPoleOffset(poleOffset);
 		Sphere.setZeroMeridianOffset(zeroMeridianOffset);
 		Sphere.setIntensityProjector(new IntensityProjector(inputImp.getImageStack()));
 
 		IJ.showStatus("World Map Project ...");
 		sphere = new Sphere(radius);
 		ImageProcessor outputIp = projectPlateCaree(scaling);
-		ImagePlus outputImp = new ImagePlus(Util.addToFilename(inputImp.getTitle(), "-WorldMap"), outputIp);
+		ImagePlus outputImp = new ImagePlus(Util.addToFilename(inputImp.getTitle(), "-map"), outputIp);
 		outputImp.show();
 	}
 	
