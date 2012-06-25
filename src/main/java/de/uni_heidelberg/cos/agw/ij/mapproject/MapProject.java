@@ -76,7 +76,8 @@ public class MapProject implements PlugInFilter {
 		IJ.showStatus("World Map Project ...");
 		sphere = new Sphere(radius);
 		ImageProcessor outputIp = projectPlateCaree(scaling);
-		ImagePlus outputImp = new ImagePlus(Util.addToFilename(inputImp.getTitle(), "-map"), outputIp);
+		String filenameParams = String.format("-map-cx%d-cy%d-cz%d-r%d-po%.2f-zo%.2f-s%.2f", centerX, centerY, centerZ, radius, poleOffset, zeroMeridianOffset, scaling);
+		ImagePlus outputImp = new ImagePlus(Util.addToFilename(inputImp.getTitle(), filenameParams), outputIp);
 		outputImp.show();
 	}
 	
