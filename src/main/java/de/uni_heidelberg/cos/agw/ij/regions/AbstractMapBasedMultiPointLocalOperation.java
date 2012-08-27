@@ -18,11 +18,9 @@
  */
 package de.uni_heidelberg.cos.agw.ij.regions;
 
+import de.uni_heidelberg.cos.agw.ij.util.Util;
 import ij.ImagePlus;
 import ij.ImageStack;
-import ij.process.ByteProcessor;
-import ij.process.ImageProcessor;
-import ij.process.ShortProcessor;
 import java.util.List;
 import java.util.Map;
 import javax.vecmath.Point3i;
@@ -51,7 +49,7 @@ abstract public class AbstractMapBasedMultiPointLocalOperation extends AbstractM
 
         ImageStack localStack = new ImageStack(boundsWidth, boundsHeight);
         for (int z = boundsCorner.z; z < boundsCorner.z + boundsDepth; ++z) {
-            localStack.addSlice("", new ByteProcessor(boundsWidth, boundsHeight));
+            localStack.addSlice("", Util.newProcessor(imp, boundsWidth, boundsHeight));
         }
 
         for (Point3i global : intensityMap.get(value)) {
@@ -136,13 +134,5 @@ abstract public class AbstractMapBasedMultiPointLocalOperation extends AbstractM
             }
         }
         return bounds;
-    }
-
-    protected final ImageProcessor getNewImageProcessor() {
-        if (bitDepth == 16) {
-            return new ShortProcessor(boundsWidth, boundsHeight);
-        } else {
-            return new ByteProcessor(boundsWidth, boundsHeight);
-        }
     }
 }
