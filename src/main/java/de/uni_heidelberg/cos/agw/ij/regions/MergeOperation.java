@@ -1,13 +1,13 @@
 /*
  * This file is part of the COS AGW ImageJ plugin bundle.
  * https://github.com/bhoeckendorf/cos-agw_ij
- * 
+ *
  * Copyright 2012 B. Hoeckendorf <b.hoeckendorf at web dot de>
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *       http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
@@ -16,51 +16,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package de.uni_heidelberg.cos.agw.ij.regions;
 
 import ij.ImagePlus;
 import ij.process.ImageProcessor;
-
 import java.util.List;
-
 import javax.vecmath.Point3i;
 
-
 public class MergeOperation extends AbstractMapBasedMultiPointOperation {
-	
-	
-	public MergeOperation(ImagePlus imp) {
-		super(imp);
-	}
 
+    public MergeOperation(ImagePlus imp) {
+        super(imp);
+    }
 
-	@Override
-	public String getName() {
-		return "Merge";
-	}
-	
-	
-	public void run() {
-		List<Integer> selectedValues = getSelectedValues();
-		if (selectedValues.size() < 2)
-			return;
-		
-		int mergedValue = selectedValues.get(0);
-		for (int i = 1; i < selectedValues.size(); ++i) {
-			int value = selectedValues.get(i);
-			List<Point3i> pixels = intensityMap.remove(value);
-			if (pixels == null)
-				continue;
-			
-			ImageProcessor stackIp;
-			for (Point3i pixel : pixels) {
-				stackIp = stack.getProcessor(pixel.z);
-				stackIp.putPixel(pixel.x, pixel.y, mergedValue);
-			}
-			intensityMap.get(mergedValue).addAll(pixels);
-		}
-		postRun();
-	}
+    @Override
+    public String getName() {
+        return "Merge";
+    }
 
+    @Override
+    public void run() {
+        List<Integer> selectedValues = getSelectedValues();
+        if (selectedValues.size() < 2) {
+            return;
+        }
+
+        int mergedValue = selectedValues.get(0);
+        for (int i = 1; i < selectedValues.size(); ++i) {
+            int value = selectedValues.get(i);
+            List<Point3i> pixels = intensityMap.remove(value);
+            if (pixels == null) {
+                continue;
+            }
+
+            ImageProcessor stackIp;
+            for (Point3i pixel : pixels) {
+                stackIp = stack.getProcessor(pixel.z);
+                stackIp.putPixel(pixel.x, pixel.y, mergedValue);
+            }
+            intensityMap.get(mergedValue).addAll(pixels);
+        }
+        postRun();
+    }
 }
