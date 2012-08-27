@@ -1,24 +1,24 @@
 /*
  * This file is part of the COS AGW ImageJ plugin bundle.
  * https://github.com/bhoeckendorf/cos-agw_ij
- * 
+ *
  * Copyright 2012 B. Hoeckendorf <b.hoeckendorf at web dot de>
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-
 package de.uni_heidelberg.cos.agw.ij;
 
+import de.uni_heidelberg.cos.agw.ij.util.Util;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -32,19 +32,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.vecmath.Point3i;
-import de.uni_heidelberg.cos.agw.ij.util.Util;
 
 public class FindIntensityCenters implements PlugInFilter {
 
     private ImagePlus inputImp;
-
 
     @Override
     public int setup(String args, ImagePlus imp) {
         inputImp = imp;
         return DOES_8G + DOES_16;
     }
-
 
     @Override
     public void run(ImageProcessor inputIp) {
@@ -54,87 +51,83 @@ public class FindIntensityCenters implements PlugInFilter {
         dialog.addCheckbox("Display image", false);
         dialog.addNumericField("Point radius", 0, 0);
         dialog.showDialog();
-        if (dialog.wasCanceled())
+        if (dialog.wasCanceled()) {
             return;
+        }
 
         final boolean doDisplayTable = dialog.getNextBoolean();
         final boolean doDisplayImage = dialog.getNextBoolean();
         final int pointRadius = (int) Math.round(dialog.getNextNumber());
-        final int xSize = inputImp.getWidth();
-        final int ySize = inputImp.getHeight();
-        final int zSize = inputImp.getStackSize();
+        final int width = inputImp.getWidth();
+        final int height = inputImp.getHeight();
+        final int nplanes = inputImp.getStackSize();
 
-        // Create intensity -> pixels mapping.
-        Map<Integer, List<Point3i>> intensityMap = new HashMap<Integer, List<Point3i>>();
-        ImageStack inputStack = inputImp.getImageStack();
-        for (int z = 1; z <= zSize; ++z) {
-            inputIp = inputStack.getProcessor(z);
-            for (int y = 0; y < ySize; ++y) {
-                for (int x = 0; x < xSize; ++x) {
-                    final int value = inputIp.getPixel(x, y);
-
-                    // ignore 0s
-                    if (value == 0)
+        // Read intensity values from image, store in data structure.
+        // Map<intensity, List<sumX, sumY, sumZ, n>>
+        Map<Integer, List<Integer>> data = new HashMap<Integer, List<Integer>>();
+        final ImageStack inputStack = inputImp.getImageStack();
+        for (int z = 1; z <= nplanes; ++z) {
+            final ImageProcessor ip = inputStack.getProcessor(z);
+            for (int y = 0; y < height; ++y) {
+                for (int x = 0; x < width; ++x) {
+                    final int value = ip.getPixel(x, y);
+                    if (value == 0) {
                         continue;
-
-                    Point3i pixel = new Point3i(x, y, z);
-                    if (!intensityMap.containsKey(value))
-                        intensityMap.put(value, new ArrayList<Point3i>());
-                    intensityMap.get(value).add(pixel);
+                    }
+                    List<Integer> valueData = data.get(value);
+                    if (valueData == null) {
+                        final int nfields = 4;
+                        valueData = new ArrayList<Integer>(nfields);
+                        for (int i = 0; i < nfields; ++i) {
+                            valueData.add(0);
+                        }
+                        data.put(value, valueData);
+                    }
+                    final int[] pointData = new int[]{x, y, z, 1};
+                    for (int i = 0; i < pointData.length; ++i) {
+                        valueData.set(i, valueData.get(i) + pointData[i]);
+                    }
                 }
             }
         }
 
-        // Create intensity -> centers mapping from above mapping.
+        // Generate value, center map.
         Map<Integer, Point3i> pointMap = new HashMap<Integer, Point3i>();
-        for (int value : intensityMap.keySet()) {
-            List<Point3i> pixels = intensityMap.get(value);
-            double avgX = 0;
-            double avgY = 0;
-            double avgZ = 0;
-            for (Point3i pixel : pixels) {
-                avgX += pixel.x;
-                avgY += pixel.y;
-                avgZ += pixel.z;
-            }
-            avgX = avgX / pixels.size();
-            avgY = avgY / pixels.size();
-            avgZ = avgZ / pixels.size();
-            final int x = (int) Math.round(avgX);
-            final int y = (int) Math.round(avgY);
-            final int z = (int) Math.round(avgZ);
-            Point3i point = new Point3i(x, y, z);
+        for (final int value : data.keySet()) {
+            List<Integer> valueData = data.get(value);
+            final int n = valueData.get(3);
+            final Point3i point = new Point3i();
+            point.x = (int) Math.round(valueData.get(0) / n);
+            point.y = (int) Math.round(valueData.get(1) / n);
+            point.z = (int) Math.round(valueData.get(2) / n);
             pointMap.put(value, point);
         }
 
-        // Clear intensity -> pixels mapping. It's no longer needed.
-        // intensityMap.clear();
-
         // Create and show an output image, if requested.
         if (doDisplayImage) {
-            ImageStack outputStack = new ImageStack(xSize, ySize);
-            for (int z = 1; z <= zSize; ++z)
-                outputStack.addSlice("", Util.newProcessor(inputImp));
+            final ImageStack outputStack = new ImageStack(width, height);
+            for (int z = 1; z <= nplanes; ++z) {
+                outputStack.addSlice("", Util.newProcessor(inputImp, width, height));
+            }
 
-            ImageProcessor outputIp;
-            for (int value : pointMap.keySet()) {
-                Point3i point = pointMap.get(value);
+            for (final int value : pointMap.keySet()) {
+                final Point3i point = pointMap.get(value);
                 for (int z = point.z - pointRadius; z <= point.z + pointRadius; ++z) {
-                    if (z < 1 || z > zSize)
+                    if (z < 1 || z > nplanes) {
                         continue;
-                    outputIp = outputStack.getProcessor(z);
+                    }
+                    final ImageProcessor ip = outputStack.getProcessor(z);
                     for (int x = point.x - pointRadius; x <= point.x
                             + pointRadius; ++x) {
                         for (int y = point.y - pointRadius; y <= point.y
                                 + pointRadius; ++y) {
-                            outputIp.putPixel(x, y, value);
+                            ip.putPixel(x, y, value);
                         }
                     }
                 }
             }
 
-            ImagePlus outputImp = new ImagePlus("Intensity centers",
-                    outputStack);
+            ImagePlus outputImp = new ImagePlus("Intensity centers", outputStack);
             outputImp.getProcessor().setLut(inputImp.getProcessor().getLut());
             outputImp.show();
         }
@@ -152,11 +145,10 @@ public class FindIntensityCenters implements PlugInFilter {
                 table.addValue("x", point.x);
                 table.addValue("y", point.y);
 
-                // z -= 1 because ImageJ's first z is 1, not 0
+                // ImageJ's first z is 1, not 0
                 table.addValue("z", point.z - 1);
             }
             table.show("Intensity centers");
         }
     }
-
 }
