@@ -51,7 +51,8 @@ public class EditRegions implements PlugInFilter, ActionListener {
 
     private void runDialog() {
         dialog = new GenericDialogPlus("Edit Regions");
-        dialog.addMessage("Use the multipoint tool to\nselect the regions of interest.");
+        dialog.addMessage("Use the multipoint tool to\n"
+                + "select the regions of interest.");
         // dialog.addButton("Split manual", this);
         dialog.addButton("Split watershed", this);
         dialog.addButton("Merge", this);

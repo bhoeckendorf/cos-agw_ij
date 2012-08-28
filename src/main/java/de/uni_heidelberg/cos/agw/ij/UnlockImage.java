@@ -1,13 +1,13 @@
 /*
  * This file is part of the COS AGW ImageJ plugin bundle.
  * https://github.com/bhoeckendorf/cos-agw_ij
- * 
+ *
  * Copyright 2012 B. Hoeckendorf <b.hoeckendorf at web dot de>
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *       http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
@@ -16,27 +16,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package de.uni_heidelberg.cos.agw.ij;
 
 import ij.ImagePlus;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 
-
 public class UnlockImage implements PlugInFilter {
 
+    @Override
+    public int setup(String args, ImagePlus imp) {
+        if (imp.isLocked()) {
+            imp.unlock();
+        }
+        return DOES_ALL;
+    }
 
-	@Override
-	public int setup(String args, ImagePlus imp) {
-		if (imp.isLocked())
-			imp.unlock();
-		return DOES_ALL;
-	}
-
-	
-	@Override
-	public void run(ImageProcessor ip) {
-	}
-	
+    @Override
+    public void run(ImageProcessor ip) {
+    }
 }

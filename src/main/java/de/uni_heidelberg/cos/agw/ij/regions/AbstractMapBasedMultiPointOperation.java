@@ -28,7 +28,8 @@ import java.util.List;
 import java.util.Set;
 import javax.vecmath.Point3i;
 
-abstract public class AbstractMapBasedMultiPointOperation extends AbstractMapBasedOperation {
+abstract public class AbstractMapBasedMultiPointOperation
+        extends AbstractMapBasedOperation {
 
     public AbstractMapBasedMultiPointOperation(final ImagePlus imp) {
         super(imp);

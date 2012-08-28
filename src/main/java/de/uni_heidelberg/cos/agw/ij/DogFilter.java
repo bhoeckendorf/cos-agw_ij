@@ -1,13 +1,13 @@
 /*
  * This file is part of the COS AGW ImageJ plugin bundle.
  * https://github.com/bhoeckendorf/cos-agw_ij
- * 
+ *
  * Copyright 2012 B. Hoeckendorf <b.hoeckendorf at web dot de>
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *       http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
@@ -16,9 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package de.uni_heidelberg.cos.agw.ij;
 
+import de.uni_heidelberg.cos.agw.ij.util.Util;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
@@ -33,20 +33,17 @@ import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
-import de.uni_heidelberg.cos.agw.ij.util.Util;
 
 public class DogFilter<T extends NumericType<T> & NativeType<T> & RealType<T>>
         implements PlugInFilter {
 
     private ImagePlus inputImp;
 
-
     @Override
     public int setup(String args, ImagePlus imp) {
         inputImp = imp;
         return DOES_ALL;
     }
-
 
     @Override
     public void run(ImageProcessor ip) {
@@ -56,17 +53,17 @@ public class DogFilter<T extends NumericType<T> & NativeType<T> & RealType<T>>
         dialog.addNumericField("Sigma2", 4.0, 1);
         dialog.addCheckbox("Adjust kernel for sampling anisotropy", true);
         dialog.showDialog();
-        if (dialog.wasCanceled())
+        if (dialog.wasCanceled()) {
             return;
+        }
 
         final double sigma1 = dialog.getNextNumber();
         final double sigma2 = dialog.getNextNumber();
         final boolean useAnisotropicKernel = dialog.getNextBoolean();
         ImagePlus resultImp = run(inputImp, sigma1, sigma2,
-                useAnisotropicKernel);
+                                  useAnisotropicKernel);
         resultImp.show();
     }
-
 
     public ImagePlus run(final ImagePlus imp, final double sigma1,
             final double sigma2, final boolean useAnisotropicKernel) {
@@ -86,17 +83,17 @@ public class DogFilter<T extends NumericType<T> & NativeType<T> & RealType<T>>
 
         ImageCalculator imageCalculator = new ImageCalculator();
         ImagePlus resultImp = imageCalculator.run("Subtract create stack",
-                sigma1Imp, sigma2Imp);
+                                                  sigma1Imp, sigma2Imp);
         sigma1Imp.close();
         sigma2Imp.close();
 
-        resultImp.setTitle(Util.addToFilename(inputImp.getTitle(),
+        resultImp.setTitle(Util.addToFilename(
+                inputImp.getTitle(),
                 String.format("-DoG-%.1f-%.1f", sigma1, sigma2)));
         resultImp.setSlice(currentPlane);
         resultImp.setCalibration(calibration);
         return resultImp;
     }
-
 
     private ImagePlus gaussianBlur(final Img<T> img, final double sigma) {
         final double[] sigmaArray = getSigma(sigma, img.numDimensions());
@@ -104,44 +101,43 @@ public class DogFilter<T extends NumericType<T> & NativeType<T> & RealType<T>>
         return ImageJFunctions.wrap(output, "");
     }
 
-
     private ImagePlus gaussianBlur(final Img<T> img, final double sigma,
             final double[] anisotropy) {
         final double[] sigmaArray = getSigma(sigma, img.numDimensions(),
-                anisotropy);
+                                             anisotropy);
         final Img<T> output = Gauss.inDouble(sigmaArray, img);
         return ImageJFunctions.wrap(output, "");
     }
 
-
     private double[] getAnisotropy(final Calibration calibration) {
-        final double[] anisotropy = { calibration.pixelWidth,
-                calibration.pixelHeight, calibration.pixelDepth };
+        final double[] anisotropy = {calibration.pixelWidth,
+            calibration.pixelHeight, calibration.pixelDepth};
         double smallest = anisotropy[0];
         for (int i = 1; i < anisotropy.length; ++i) {
-            if (anisotropy[i] < smallest)
+            if (anisotropy[i] < smallest) {
                 smallest = anisotropy[i];
+            }
         }
-        for (int i = 0; i < anisotropy.length; ++i)
+        for (int i = 0; i < anisotropy.length; ++i) {
             anisotropy[i] = anisotropy[i] / smallest;
+        }
         return anisotropy;
     }
 
-
     private double[] getSigma(final double sigma, final int ndimensions) {
         final double[] sigmaArray = new double[ndimensions];
-        for (int i = 0; i < sigmaArray.length; ++i)
+        for (int i = 0; i < sigmaArray.length; ++i) {
             sigmaArray[i] = sigma;
+        }
         return sigmaArray;
     }
-
 
     private double[] getSigma(final double sigma, final int ndimensions,
             final double[] anisotropy) {
         final double[] sigmaArray = getSigma(sigma, ndimensions);
-        for (int i = 0; i < sigmaArray.length; ++i)
+        for (int i = 0; i < sigmaArray.length; ++i) {
             sigmaArray[i] = sigmaArray[i] / anisotropy[i];
+        }
         return sigmaArray;
     }
-
 }

@@ -83,7 +83,8 @@ public class FindIntensityCenters implements PlugInFilter {
                 resultsTable = getResultsTable(centerMap);
                 title += "pixels";
             } else {
-                resultsTable = getResultsTable(centerMap, inputImp.getCalibration());
+                resultsTable = getResultsTable(centerMap,
+                                               inputImp.getCalibration());
                 title += inputImp.getCalibration().getUnits();
             }
             resultsTable.show(title);
@@ -163,7 +164,8 @@ public class FindIntensityCenters implements PlugInFilter {
         if (centerMap == null) {
             centerMap = getCenterMap(imp);
         }
-        int[] dimensions = new int[]{imp.getWidth(), imp.getHeight(), imp.getStackSize()};
+        int[] dimensions = new int[]{imp.getWidth(), imp.getHeight(),
+            imp.getStackSize()};
         ImagePlus plotImp = getPlot(centerMap, pointRadius, dimensions);
         return plotImp;
     }
@@ -179,9 +181,13 @@ public class FindIntensityCenters implements PlugInFilter {
      */
     private ImagePlus getPlot(final Map<Integer, Point3d> pointMap,
             final int pointRadius, final int[] dimensions) {
-        final ImageStack outputStack = new ImageStack(dimensions[0], dimensions[1]);
+        final ImageStack outputStack = new ImageStack(dimensions[0],
+                                                      dimensions[1]);
         for (int z = 1; z <= dimensions[2]; ++z) {
-            outputStack.addSlice("", Util.newProcessor(inputImp, outputStack.getWidth(), outputStack.getHeight()));
+            outputStack.addSlice("",
+                                 Util.newProcessor(inputImp,
+                                                   outputStack.getWidth(),
+                                                   outputStack.getHeight()));
         }
 
         for (final int value : pointMap.keySet()) {
@@ -202,7 +208,8 @@ public class FindIntensityCenters implements PlugInFilter {
         }
 
         ImagePlus plotImp = new ImagePlus("", outputStack);
-        plotImp.setTitle(Util.addToFilename(inputImp.getTitle(), outputTitleAddition));
+        plotImp.setTitle(Util.addToFilename(inputImp.getTitle(),
+                                            outputTitleAddition));
         Util.copyLutAndCalibration(inputImp, plotImp);
         return plotImp;
     }
@@ -215,7 +222,8 @@ public class FindIntensityCenters implements PlugInFilter {
      * real world dimensions or remain as pixel grid positions
      * @return table
      */
-    public ResultsTable getResultsTable(final ImagePlus imp, final boolean doCalibrate) {
+    public ResultsTable getResultsTable(final ImagePlus imp,
+            final boolean doCalibrate) {
         if (imp != inputImp) {
             inputImp = imp;
             centerMap = null;
@@ -264,14 +272,16 @@ public class FindIntensityCenters implements PlugInFilter {
      * {@link #getCenterMap(ij.ImagePlus)}
      * @return table
      */
-    private ResultsTable getResultsTable(final Map<Integer, Point3d> pointMap, final Calibration calibration) {
+    private ResultsTable getResultsTable(final Map<Integer, Point3d> pointMap,
+            final Calibration calibration) {
         ResultsTable table = new ResultsTable();
         table.setPrecision(2);
         List<Integer> values = new ArrayList<Integer>(pointMap.keySet());
         Collections.sort(values);
         for (int value : values) {
             table.incrementCounter();
-            Point3d point = Util.calibratePoint(pointMap.get(value), calibration);
+            Point3d point = Util.calibratePoint(pointMap.get(value),
+                                                calibration);
             table.addValue("Value", value);
             table.addValue("x", point.x);
             table.addValue("y", point.y);

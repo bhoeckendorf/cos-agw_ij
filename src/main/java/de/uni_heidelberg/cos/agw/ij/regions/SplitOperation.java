@@ -62,7 +62,9 @@ public class SplitOperation extends AbstractMapBasedMultiPointLocalOperation {
         IJ.run(localImp, "Watershed", "");
         IJ.run(localImp, "Invert", "");
         localImp.show();
-        IJ.run("Find Connected Regions", "allow_diagonal display_one_image regions_for_values_over=100 minimum_number_of_points=1 stop_after=-1");
+        IJ.run("Find Connected Regions",
+               "allow_diagonal display_one_image regions_for_values_over=100"
+                + "minimum_number_of_points=1 stop_after=-1");
         ImagePlus localCcImp = IJ.getImage();
         localCcImp.setTitle(localImp.getTitle());
         localImp.hide();

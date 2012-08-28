@@ -25,7 +25,8 @@ import java.util.List;
 import java.util.Map;
 import javax.vecmath.Point3i;
 
-abstract public class AbstractMapBasedMultiPointLocalOperation extends AbstractMapBasedMultiPointOperation {
+abstract public class AbstractMapBasedMultiPointLocalOperation
+        extends AbstractMapBasedMultiPointOperation {
 
     private final int bitDepth;
     private Point3i boundsCorner = new Point3i(0, 0, 0);
@@ -49,7 +50,9 @@ abstract public class AbstractMapBasedMultiPointLocalOperation extends AbstractM
 
         ImageStack localStack = new ImageStack(boundsWidth, boundsHeight);
         for (int z = boundsCorner.z; z < boundsCorner.z + boundsDepth; ++z) {
-            localStack.addSlice("", Util.newProcessor(imp, boundsWidth, boundsHeight));
+            localStack.addSlice("", Util.newProcessor(imp,
+                                                      boundsWidth,
+                                                      boundsHeight));
         }
 
         for (Point3i global : intensityMap.get(value)) {

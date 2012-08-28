@@ -29,7 +29,8 @@ import javax.vecmath.Point3i;
 
 abstract public class AbstractMapBasedOperation implements Operation {
 
-    protected static Map<Integer, List<Point3i>> intensityMap = new HashMap<Integer, List<Point3i>>();
+    protected static Map<Integer, List<Point3i>> intensityMap =
+            new HashMap<Integer, List<Point3i>>();
     protected final ImagePlus imp;
     protected final ImageProcessor ip;
     protected final ImageStack stack;

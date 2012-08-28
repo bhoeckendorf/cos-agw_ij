@@ -58,7 +58,8 @@ public class Util {
         }
     }
 
-    public static void copyLutAndCalibration(final ImagePlus from, final ImagePlus to) {
+    public static void copyLutAndCalibration(final ImagePlus from,
+            final ImagePlus to) {
         to.getProcessor().setLut(from.getProcessor().getLut());
         to.copyScale(from);
     }
@@ -70,28 +71,32 @@ public class Util {
         return pixel;
     }
 
-    public static Point2d calibratePoint(final Point2i point, final Calibration calibration) {
+    public static Point2d calibratePoint(final Point2i point,
+            final Calibration calibration) {
         Point2d calibratedPoint = new Point2d();
         calibratedPoint.x = point.x * calibration.pixelWidth;
         calibratedPoint.y = point.y * calibration.pixelHeight;
         return calibratedPoint;
     }
 
-    public static Point2d calibratePoint(final Point2d point, final Calibration calibration) {
+    public static Point2d calibratePoint(final Point2d point,
+            final Calibration calibration) {
         Point2d calibratedPoint = new Point2d();
         calibratedPoint.x = point.x * calibration.pixelWidth;
         calibratedPoint.y = point.y * calibration.pixelHeight;
         return calibratedPoint;
     }
 
-    public static Point2d getSubGridPosition(final Point2d point, final Calibration calibration) {
+    public static Point2d getSubGridPosition(final Point2d point,
+            final Calibration calibration) {
         Point2d pixel = new Point2d();
         pixel.x = point.x / calibration.pixelWidth;
         pixel.y = point.y / calibration.pixelHeight;
         return pixel;
     }
 
-    public static Point2i getGridPosition(final Point2d point, final Calibration calibration) {
+    public static Point2i getGridPosition(final Point2d point,
+            final Calibration calibration) {
         Point2i pixel = new Point2i();
         pixel.x = (int) Math.round(point.x / calibration.pixelWidth);
         pixel.y = (int) Math.round(point.y / calibration.pixelHeight);
@@ -106,7 +111,8 @@ public class Util {
         return pixel;
     }
 
-    public static Point3d calibratePoint(final Point3i point, final Calibration calibration) {
+    public static Point3d calibratePoint(final Point3i point,
+            final Calibration calibration) {
         Point3d calibratedPoint = new Point3d();
         calibratedPoint.x = point.x * calibration.pixelWidth;
         calibratedPoint.y = point.y * calibration.pixelHeight;
@@ -114,7 +120,8 @@ public class Util {
         return calibratedPoint;
     }
 
-    public static Point3d calibratePoint(final Point3d point, final Calibration calibration) {
+    public static Point3d calibratePoint(final Point3d point,
+            final Calibration calibration) {
         Point3d calibratedPoint = new Point3d();
         calibratedPoint.x = point.x * calibration.pixelWidth;
         calibratedPoint.y = point.y * calibration.pixelHeight;
@@ -122,7 +129,8 @@ public class Util {
         return calibratedPoint;
     }
 
-    public static Point3d getSubGridPosition(final Point3d point, final Calibration calibration) {
+    public static Point3d getSubGridPosition(final Point3d point,
+            final Calibration calibration) {
         Point3d pixel = new Point3d();
         pixel.x = point.x / calibration.pixelWidth;
         pixel.y = point.y / calibration.pixelHeight;
@@ -130,7 +138,8 @@ public class Util {
         return pixel;
     }
 
-    public static Point3i getGridPosition(final Point3d point, final Calibration calibration) {
+    public static Point3i getGridPosition(final Point3d point,
+            final Calibration calibration) {
         Point3i pixel = new Point3i();
         pixel.x = (int) Math.round(point.x / calibration.pixelWidth);
         pixel.y = (int) Math.round(point.y / calibration.pixelHeight);
