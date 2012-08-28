@@ -49,9 +49,9 @@ Detailed documentation is available on the [Wiki](https://github.com/bhoeckendor
   - [ImgLib2](http://fiji.sc/wiki/index.php/ImgLib2)  
     Please note that ImgLib2 is part of the Fiji distribution of ImageJ.
 
-  -	[Java 3D](http://java3d.java.net/binary-builds.html)  
-	Please note that Java 3D is already part of the standard Fiji + JRE
-	bundle available [here](http://fiji.sc/wiki/index.php/Downloads).
+  - [Java 3D](http://java3d.java.net/binary-builds.html)  
+    Please note that Java 3D is already part of the standard Fiji + JRE bundle
+    available [here](http://fiji.sc/wiki/index.php/Downloads).
 
 
 ----------
