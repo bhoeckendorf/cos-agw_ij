@@ -48,10 +48,14 @@ public class RemoveOperation extends AbstractMapBasedMultiPointOperation {
             return;
         }
 
-        ImageProcessor stackIp;
+        int currentZ = pixels.get(0).z;
+        ImageProcessor ip = stack.getProcessor(currentZ);
         for (Point3i pixel : pixels) {
-            stackIp = stack.getProcessor(pixel.z);
-            stackIp.putPixel(pixel.x, pixel.y, 0);
+            if (pixel.z != currentZ) {
+                ip = stack.getProcessor(pixel.z);
+                currentZ = pixel.z;
+            }
+            ip.putPixel(pixel.x, pixel.y, 0);
         }
         postRun();
     }

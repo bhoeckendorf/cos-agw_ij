@@ -32,17 +32,14 @@ abstract public class AbstractMapBasedOperation implements Operation {
     protected static Map<Integer, List<Point3i>> intensityMap =
             new HashMap<Integer, List<Point3i>>();
     protected final ImagePlus imp;
-    protected final ImageProcessor ip;
     protected final ImageStack stack;
 
     public AbstractMapBasedOperation(final ImagePlus imp) {
         this.imp = imp;
-        ip = this.imp.getProcessor();
         stack = this.imp.getImageStack();
         if (intensityMap.isEmpty()) {
             intensityMap = getIntensityMap(this.imp);
         }
-        run();
     }
 
     @Override
@@ -58,20 +55,22 @@ abstract public class AbstractMapBasedOperation implements Operation {
 
     protected final Map<Integer, List<Point3i>> getIntensityMap(ImagePlus imp) {
         Map<Integer, List<Point3i>> map = new HashMap<Integer, List<Point3i>>();
-        ImageStack lstack = imp.getImageStack();
-        for (int z = 1; z <= lstack.getSize(); ++z) {
-            ImageProcessor planeIp = lstack.getProcessor(z);
-            for (int y = 0; y < planeIp.getHeight(); ++y) {
-                for (int x = 0; x < planeIp.getWidth(); ++x) {
-                    final int value = planeIp.getPixel(x, y);
+        final ImageStack stack = imp.getStack();
+        for (int z = 1; z <= stack.getSize(); ++z) {
+            ImageProcessor ip = stack.getProcessor(z);
+            for (int y = 0; y < ip.getHeight(); ++y) {
+                for (int x = 0; x < ip.getWidth(); ++x) {
+                    final int value = ip.getPixel(x, y);
                     if (value == 0) {
                         continue;
                     }
-
-                    if (!map.containsKey(value)) {
-                        map.put(value, new ArrayList<Point3i>());
+                    List<Point3i> points = map.get(value);
+                    if (points == null) {
+                        points = new ArrayList<Point3i>();
+                        map.put(value, points);
                     }
-                    map.get(value).add(new Point3i(x, y, z));
+                    Point3i point = new Point3i(x, y, z);
+                    points.add(point);
                 }
             }
         }
@@ -86,7 +85,7 @@ abstract public class AbstractMapBasedOperation implements Operation {
         return value;
     }
 
-    public static void clearIntensityMap() {
+    public static final void clearIntensityMap() {
         intensityMap.clear();
     }
 }

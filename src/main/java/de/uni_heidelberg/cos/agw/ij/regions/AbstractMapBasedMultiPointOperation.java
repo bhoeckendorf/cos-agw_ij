@@ -19,7 +19,6 @@
 package de.uni_heidelberg.cos.agw.ij.regions;
 
 import ij.ImagePlus;
-import ij.ImageStack;
 import ij.gui.Roi;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,7 +43,7 @@ abstract public class AbstractMapBasedMultiPointOperation
 
         float[] xs = roi.getFloatPolygon().xpoints;
         float[] ys = roi.getFloatPolygon().ypoints;
-        int z = super.imp.getCurrentSlice();
+        int z = imp.getCurrentSlice();
         for (int i = 0; i < xs.length; ++i) {
             points.add(new Point3i(Math.round(xs[i]), Math.round(ys[i]), z));
         }
@@ -52,7 +51,6 @@ abstract public class AbstractMapBasedMultiPointOperation
     }
 
     protected final List<Integer> getSelectedValues() {
-        ImageStack stack = super.imp.getImageStack();
         Set<Integer> valuesSet = new HashSet<Integer>();
         for (Point3i point : getSelectedPoints()) {
             int value = stack.getProcessor(point.z).getPixel(point.x, point.y);
