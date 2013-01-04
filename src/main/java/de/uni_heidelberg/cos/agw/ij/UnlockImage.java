@@ -2,7 +2,7 @@
  * This file is part of the COS AGW ImageJ plugin bundle.
  * https://github.com/bhoeckendorf/cos-agw_ij
  *
- * Copyright 2012 B. Hoeckendorf <b.hoeckendorf at web dot de>
+ * Copyright 2012, 2013  B. Hoeckendorf <b.hoeckendorf at web dot de>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
