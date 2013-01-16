@@ -21,6 +21,8 @@ package de.uni_heidelberg.cos.agw.ij.util;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.process.ImageProcessor;
+import javax.vecmath.Point2i;
+import javax.vecmath.Point3i;
 
 /* TODO: Are 2 separate methods required for 2D and 3D? Is there a significant
  * performance difference?
@@ -38,9 +40,21 @@ public class IntensityProjector {
         linearIterator = new LinearIterator();
     }
 
+    public void set(Point2i start, Point2i end) {
+        int[] startArray = {start.x, start.y};
+        int[] endArray = {end.x, end.y};
+        set(startArray, endArray);
+    }
+
+    public void set(Point3i start, Point3i end) {
+        int[] startArray = {start.x, start.y, start.z};
+        int[] endArray = {end.x, end.y, end.z};
+        set(startArray, endArray);
+    }
+
     public void set(int[] start, int[] end) {
-        if (start.length > 3 || end.length > 3) {
-            throw new IllegalArgumentException("IntensityProjector: Max 3 dimensions.");
+        if (start.length == 1 || start.length > 3 || end.length == 1 || end.length > 3) {
+            throw new IllegalArgumentException("IntensityProjector works only in 2 and 3 dimensions.");
         }
         linearIterator.set(start, end, true);
         is3d = (start.length == 3) ? true : false;
@@ -56,7 +70,7 @@ public class IntensityProjector {
 
     private int getMaximum2D() {
         ImageProcessor ip = imp.getProcessor();
-        int max = Integer.MIN_VALUE;
+        int max = 0;
         for (int[] point : linearIterator) {
             int next = ip.getPixel(point[0], point[1]);
             if (next > max) {
@@ -67,14 +81,22 @@ public class IntensityProjector {
     }
 
     private int getMaximum3D() {
-        ImageProcessor ip;
-        int max = Integer.MIN_VALUE;
+        ImageProcessor ip = null;
+        int max = 0;
+        int currentZ = -1;
         for (int[] point : linearIterator) {
-            ip = stack.getProcessor(point[2]);
+            if (point[2] != currentZ) {
+                try {
+                    ip = stack.getProcessor(point[2]);
+                } catch (IllegalArgumentException e) {
+                    continue;
+                }
+            }
             int next = ip.getPixel(point[0], point[1]);
             if (next > max) {
                 max = next;
             }
+            currentZ = point[2];
         }
         return max;
     }
@@ -100,14 +122,22 @@ public class IntensityProjector {
     }
 
     private int getMinimum3D() {
-        ImageProcessor ip;
+        ImageProcessor ip = null;
         int min = Integer.MAX_VALUE;
+        int currentZ = -1;
         for (int[] point : linearIterator) {
-            ip = stack.getProcessor(point[2]);
+            if (point[2] != currentZ) {
+                try {
+                    ip = stack.getProcessor(point[2]);
+                } catch (IllegalArgumentException e) {
+                    continue;
+                }
+            }
             int next = ip.getPixel(point[0], point[1]);
             if (next < min) {
                 min = next;
             }
+            currentZ = point[2];
         }
         return min;
     }
@@ -122,24 +152,30 @@ public class IntensityProjector {
 
     private double getMean2D() {
         ImageProcessor ip = imp.getProcessor();
-        double sum = 0;
-        int n = 0;
+        int sum = 0;
+        final int n = linearIterator.nRemainingSteps();
         for (int[] point : linearIterator) {
             sum += ip.getPixel(point[0], point[1]);
-            n += 1;
         }
-        return sum / n;
+        return (int) Math.round((double) sum / n);
     }
 
     private double getMean3D() {
-        ImageProcessor ip;
-        double sum = 0;
-        int n = 0;
+        ImageProcessor ip = null;
+        int sum = 0;
+        final int n = linearIterator.nRemainingSteps();
+        int currentZ = -1;
         for (int[] point : linearIterator) {
-            ip = stack.getProcessor(point[2]);
+            if (point[2] != currentZ) {
+                try {
+                    ip = stack.getProcessor(point[2]);
+                } catch (IllegalArgumentException e) {
+                    continue;
+                }
+            }
             sum += ip.getPixel(point[0], point[1]);
-            n += 1;
+            currentZ = point[2];
         }
-        return sum / n;
+        return (int) Math.round((double) sum / n);
     }
 }
