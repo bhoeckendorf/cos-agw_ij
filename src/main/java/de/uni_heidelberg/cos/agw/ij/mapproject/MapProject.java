@@ -101,7 +101,7 @@ public class MapProject implements PlugInFilter {
     private ImageProcessor projectPlateCaree(double scaling, double innerRadius, double outerRadius) {
         int outputSizeX = (int) Math.round(sphere.getVoxelCountAtEquator() * scaling);
         int outputSizeY = (int) Math.round(outputSizeX / 2);
-        ImageProcessor outputIp = getNewOutputIp(outputSizeX, outputSizeY);
+        ImageProcessor outputIp = Util.newProcessor(inputImp, outputSizeX, outputSizeY);
         double[] radii = {innerRadius, outerRadius};
         for (int x = 0; x < outputSizeX; x++) {
             for (int y = 0; y < outputSizeY; y++) {
@@ -115,16 +115,5 @@ public class MapProject implements PlugInFilter {
             IJ.showProgress(x + 1, outputSizeX);
         }
         return outputIp;
-    }
-
-    private ImageProcessor getNewOutputIp(int inputSizeX, int inputSizeY) {
-        final int bits = inputImp.getBitDepth();
-        if (bits == 16) {
-            return new ShortProcessor(inputSizeX, inputSizeY);
-        } else if (bits == 32) {
-            return new FloatProcessor(inputSizeX, inputSizeY);
-        } else {
-            return new ByteProcessor(inputSizeX, inputSizeY);
-        }
     }
 }
