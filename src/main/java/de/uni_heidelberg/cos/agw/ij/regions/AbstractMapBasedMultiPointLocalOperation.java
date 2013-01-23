@@ -18,7 +18,6 @@
  */
 package de.uni_heidelberg.cos.agw.ij.regions;
 
-import de.uni_heidelberg.cos.agw.ij.util.Util;
 import ij.ImagePlus;
 import ij.ImageStack;
 import java.util.List;
@@ -50,9 +49,8 @@ abstract public class AbstractMapBasedMultiPointLocalOperation
 
         ImageStack localStack = new ImageStack(boundsWidth, boundsHeight);
         for (int z = boundsCorner.z; z < boundsCorner.z + boundsDepth; ++z) {
-            localStack.addSlice("", Util.newProcessor(imp,
-                                                      boundsWidth,
-                                                      boundsHeight));
+            localStack.addSlice("", imp.getProcessor().createProcessor(
+                    boundsWidth, boundsHeight));
         }
 
         for (Point3i global : intensityMap.get(value)) {

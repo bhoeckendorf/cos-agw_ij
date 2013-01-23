@@ -78,13 +78,13 @@ public class FindIntensityCenters implements PlugInFilter {
         if (doDisplayTable) {
             ResultsTable resultsTable;
             String title = Util.addToFilename(inputImp.getTitle(),
-                                              outputTitleAddition) + " - in ";
+                    outputTitleAddition) + " - in ";
             if (!doCalibrateTable) {
                 resultsTable = getResultsTable(centerMap);
                 title += "pixels";
             } else {
                 resultsTable = getResultsTable(centerMap,
-                                               inputImp.getCalibration());
+                        inputImp.getCalibration());
                 title += inputImp.getCalibration().getUnits();
             }
             resultsTable.show(title);
@@ -182,12 +182,10 @@ public class FindIntensityCenters implements PlugInFilter {
     private ImagePlus getPlot(final Map<Integer, Point3d> pointMap,
             final int pointRadius, final int[] dimensions) {
         final ImageStack outputStack = new ImageStack(dimensions[0],
-                                                      dimensions[1]);
+                dimensions[1]);
         for (int z = 1; z <= dimensions[2]; ++z) {
-            outputStack.addSlice("",
-                                 Util.newProcessor(inputImp,
-                                                   outputStack.getWidth(),
-                                                   outputStack.getHeight()));
+            outputStack.addSlice("", inputImp.getProcessor().createProcessor(
+                    outputStack.getWidth(), outputStack.getHeight()));
         }
 
         for (final int value : pointMap.keySet()) {
@@ -209,8 +207,8 @@ public class FindIntensityCenters implements PlugInFilter {
 
         ImagePlus plotImp = new ImagePlus("", outputStack);
         plotImp.setTitle(Util.addToFilename(inputImp.getTitle(),
-                                            outputTitleAddition));
-        Util.copyLutAndCalibration(inputImp, plotImp);
+                outputTitleAddition));
+        plotImp.copyScale(inputImp);
         return plotImp;
     }
 
@@ -281,7 +279,7 @@ public class FindIntensityCenters implements PlugInFilter {
         for (int value : values) {
             table.incrementCounter();
             Point3d point = Util.calibratePoint(pointMap.get(value),
-                                                calibration);
+                    calibration);
             table.addValue("Value", value);
             table.addValue("x", point.x);
             table.addValue("y", point.y);

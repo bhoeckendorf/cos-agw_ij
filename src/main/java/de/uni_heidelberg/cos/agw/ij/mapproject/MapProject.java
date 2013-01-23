@@ -24,10 +24,7 @@ import fiji.util.gui.GenericDialogPlus;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.plugin.filter.PlugInFilter;
-import ij.process.ByteProcessor;
-import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
-import ij.process.ShortProcessor;
 import javax.vecmath.Point3i;
 
 public class MapProject implements PlugInFilter {
@@ -50,10 +47,10 @@ public class MapProject implements PlugInFilter {
         dialog.addNumericField("Center_z", 380, 0, 4, "voxel");
         dialog.addNumericField("Radius_inner", 330, 0, 4, "voxels");
         dialog.addNumericField("Radius_outer", 330, 0, 4, "voxels");
-        dialog.addNumericField("Plane_position", 0.75, 1, 4, "0-1");
-        dialog.addNumericField("Pole_offset", 0, 1, 4, "degrees");
-        dialog.addNumericField("Zero_meridian_offset", 0, 1, 4, "degrees");
-        dialog.addNumericField("Scaling", 1, 1, 4, "x");
+        dialog.addNumericField("Plane_position", 0.75, 2, 4, "0-1");
+        dialog.addNumericField("Pole_offset", 0, 2, 4, "degrees");
+        dialog.addNumericField("Zero_meridian_offset", 0, 2, 4, "degrees");
+        dialog.addNumericField("Scaling", 1, 2, 4, "x");
         dialog.showDialog();
         if (dialog.wasCanceled()) {
             return;
@@ -82,29 +79,13 @@ public class MapProject implements PlugInFilter {
         outputImp.show();
     }
 
-//    private ImageProcessor projectPlateCaree(double scaling) {
-//        int outputSizeX = (int) Math.round(sphere.getVoxelCountAtEquator() * scaling);
-//        int outputSizeY = (int) Math.round(outputSizeX / 2);
-//        ImageProcessor outputIp = getNewOutputIp(outputSizeX, outputSizeY);
-//        for (int x = 0; x < outputSizeX; x++) {
-//            for (int y = 0; y < outputSizeY; y++) {
-//                double theta = (2 * Math.PI / outputSizeX) * x;
-//                double phi = (Math.PI / outputSizeY) * y;
-//                double value = sphere.getValueOfPhiTheta(phi, theta);
-//                outputIp.putPixelValue(x, y, value);
-//            }
-//            IJ.showProgress(x + 1, outputSizeX);
-//        }
-//        return outputIp;
-//    }
-    
-    private ImageProcessor projectPlateCaree(double scaling, double innerRadius, double outerRadius) {
-        int outputSizeX = (int) Math.round(sphere.getVoxelCountAtEquator() * scaling);
-        int outputSizeY = (int) Math.round(outputSizeX / 2);
-        ImageProcessor outputIp = Util.newProcessor(inputImp, outputSizeX, outputSizeY);
+    private ImageProcessor projectPlateCaree(final double scaling, final double innerRadius, final double outerRadius) {
+        final int outputSizeX = (int) Math.round(sphere.getVoxelCountAtEquator() * scaling);
+        final int outputSizeY = (int) Math.round(outputSizeX / 2);
+        ImageProcessor outputIp = inputImp.getProcessor().createProcessor(outputSizeX, outputSizeY);
         double[] radii = {innerRadius, outerRadius};
-        for (int x = 0; x < outputSizeX; x++) {
-            for (int y = 0; y < outputSizeY; y++) {
+        for (int x = 0; x < outputSizeX; ++x) {
+            for (int y = 0; y < outputSizeY; ++y) {
                 double theta = (2 * Math.PI / outputSizeX) * x;
                 double phi = (Math.PI / outputSizeY) * y;
                 Point3i[] points = sphere.sphericalToCartesianGrid(phi, theta, radii);

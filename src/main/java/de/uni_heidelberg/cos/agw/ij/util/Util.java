@@ -18,12 +18,7 @@
  */
 package de.uni_heidelberg.cos.agw.ij.util;
 
-import ij.ImagePlus;
 import ij.measure.Calibration;
-import ij.process.ByteProcessor;
-import ij.process.FloatProcessor;
-import ij.process.ImageProcessor;
-import ij.process.ShortProcessor;
 import javax.vecmath.Point2d;
 import javax.vecmath.Point2i;
 import javax.vecmath.Point3d;
@@ -39,29 +34,6 @@ public class Util {
         }
         return filename.substring(0, dotIdx) + addition
                 + filename.substring(dotIdx);
-    }
-
-    public static ImageProcessor newProcessor(final ImagePlus imp) {
-        return newProcessor(imp, imp.getWidth(), imp.getHeight());
-    }
-
-    public static ImageProcessor newProcessor(final ImagePlus imp,
-            final int width, final int height) {
-        final int bits = imp.getBitDepth();
-        switch (bits) {
-            case 32:
-                return new FloatProcessor(width, height);
-            case 16:
-                return new ShortProcessor(width, height);
-            default:
-                return new ByteProcessor(width, height);
-        }
-    }
-
-    public static void copyLutAndCalibration(final ImagePlus from,
-            final ImagePlus to) {
-        to.getProcessor().setLut(from.getProcessor().getLut());
-        to.copyScale(from);
     }
 
     public static Point2i getGridPosition(final Point2d point) {
