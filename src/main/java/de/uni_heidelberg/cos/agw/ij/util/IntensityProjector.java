@@ -92,10 +92,15 @@ public class IntensityProjector {
                     continue;
                 }
             }
-            int next = ip.getPixel(point[0], point[1]);
-            if (next > max) {
-                max = next;
+
+            try {
+                int next = ip.getPixel(point[0], point[1]);
+                if (next > max) {
+                    max = next;
+                }
+            } catch (NullPointerException e) {
             }
+
             currentZ = point[2];
         }
         return max;
@@ -133,10 +138,15 @@ public class IntensityProjector {
                     continue;
                 }
             }
-            int next = ip.getPixel(point[0], point[1]);
-            if (next < min) {
-                min = next;
+
+            try {
+                int next = ip.getPixel(point[0], point[1]);
+                if (next < min) {
+                    min = next;
+                }
+            } catch (NullPointerException e) {
             }
+
             currentZ = point[2];
         }
         return min;
@@ -173,7 +183,12 @@ public class IntensityProjector {
                     continue;
                 }
             }
-            sum += ip.getPixel(point[0], point[1]);
+
+            try {
+                sum += ip.getPixel(point[0], point[1]);
+            } catch (NullPointerException e) {
+            }
+
             currentZ = point[2];
         }
         return (int) Math.round((double) sum / n);
