@@ -26,8 +26,11 @@ public class UnlockImage implements PlugInFilter {
 
     @Override
     public int setup(String args, ImagePlus imp) {
-        if (imp.isLocked()) {
-            imp.unlock();
+        try {
+            if (imp.isLocked()) {
+                imp.unlock();
+            }
+        } catch (NullPointerException e) {
         }
         return DOES_ALL;
     }
