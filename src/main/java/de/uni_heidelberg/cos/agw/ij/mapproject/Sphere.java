@@ -32,22 +32,26 @@ public class Sphere {
 
     private final Point3i center = new Point3i(0, 0, 0);
     private final Vector3d vector = new Vector3d(center.x, center.y, center.z);
-    private final int radius;
+    private double radius;
     private double poleOffset = 0,
             zeroMeridianOffset = 0;
     private final Matrix3d poleOffsetMatrix = new Matrix3d();
     private Transform3D transform;
 
-    public Sphere(Point3i center, final int radius) {
-        center.x = center.x - 1;
-        center.y = center.y - 1;
-        center.z = center.z;
-        vector.x = center.x;
-        vector.y = center.y;
-        vector.z = center.z;
-        this.radius = radius;
+    public Sphere(Point3i center, final double radius) {
+        this.center.x = center.x - 1;
+        this.center.y = center.y - 1;
+        this.center.z = center.z;
+        vector.x = this.center.x;
+        vector.y = this.center.y;
+        vector.z = this.center.z;
+        setRadius(radius);
         transform = new Transform3D(poleOffsetMatrix, vector, 1d);
         poleOffsetMatrix.rotY(poleOffset);
+    }
+
+    final public void setRadius(final double radius) {
+        this.radius = radius;
     }
 
     public void setPoleOffset(double degrees) {

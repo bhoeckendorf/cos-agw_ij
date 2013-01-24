@@ -23,15 +23,19 @@ import de.uni_heidelberg.cos.agw.ij.util.Util;
 import fiji.util.gui.GenericDialogPlus;
 import ij.IJ;
 import ij.ImagePlus;
+import ij.ImageStack;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 import javax.vecmath.Point3i;
 
 public class MapProject implements PlugInFilter {
 
+    private final String pluginName = "Map Project";
     private ImagePlus inputImp;
     private Sphere sphere;
     private IntensityProjector intensityProjector;
+    private double planePosition = 0.67;
+    private double scaling = 1;
 
     @Override
     public int setup(String args, ImagePlus imp) {
@@ -41,45 +45,89 @@ public class MapProject implements PlugInFilter {
 
     @Override
     public void run(ImageProcessor inputIp) {
-        GenericDialogPlus dialog = new GenericDialogPlus("Map Project");
+        GenericDialogPlus dialog = new GenericDialogPlus(pluginName);
         dialog.addNumericField("Center_x", 480, 0, 4, "voxel");
         dialog.addNumericField("Center_y", 430, 0, 4, "voxel");
         dialog.addNumericField("Center_z", 380, 0, 4, "voxel");
-        dialog.addNumericField("Radius_inner", 330, 0, 4, "voxels");
-        dialog.addNumericField("Radius_outer", 330, 0, 4, "voxels");
-        dialog.addNumericField("Plane_position", 0.75, 2, 4, "0-1");
         dialog.addNumericField("Pole_offset", 0, 2, 4, "degrees");
         dialog.addNumericField("Zero_meridian_offset", 0, 2, 4, "degrees");
-        dialog.addNumericField("Scaling", 1, 2, 4, "x");
+        dialog.addNumericField("Radius_inner", 330, 0, 4, "voxels");
+        dialog.addNumericField("Radius_outer", 330, 0, 4, "voxels");
+        dialog.addNumericField("Plane_position", planePosition, 2, 4, "0-1");
+        dialog.addNumericField("Nr_of_spheres", 1, 0, 4, "");
+        dialog.addNumericField("Scaling", scaling, 2, 4, "x");
         dialog.showDialog();
         if (dialog.wasCanceled()) {
             return;
         }
 
-        int centerX = (int) Math.round(dialog.getNextNumber());
-        int centerY = (int) Math.round(dialog.getNextNumber());
-        int centerZ = (int) Math.round(dialog.getNextNumber());
-        int radiusInner = (int) Math.round(dialog.getNextNumber());
-        int radiusOuter = (int) Math.round(dialog.getNextNumber());
-        double planePosition = dialog.getNextNumber();
-        double poleOffset = dialog.getNextNumber();
-        double zeroMeridianOffset = dialog.getNextNumber();
-        double scaling = dialog.getNextNumber();
+        final int centerX = (int) Math.round(dialog.getNextNumber());
+        final int centerY = (int) Math.round(dialog.getNextNumber());
+        final int centerZ = (int) Math.round(dialog.getNextNumber());
+        final double poleOffset = dialog.getNextNumber();
+        final double zeroMeridianOffset = dialog.getNextNumber();
+        final int radiusInner = (int) Math.round(dialog.getNextNumber());
+        final int radiusOuter = (int) Math.round(dialog.getNextNumber());
+        planePosition = dialog.getNextNumber();
+        int nSpheres = (int) Math.round(dialog.getNextNumber());
+        scaling = dialog.getNextNumber();
 
-        final int planeRadius = (int) Math.round(radiusInner + planePosition * (radiusOuter - radiusInner));
-        sphere = new Sphere(new Point3i(centerX, centerY, centerZ), planeRadius);
+        if (nSpheres < 1) {
+            IJ.error(pluginName, "Nr of spheres must be 1 or more.");
+            return;
+        }
+        if (planePosition <= 0 || planePosition > 1) {
+            IJ.error(pluginName, "Plane position must be between 0 and 1.");
+            return;
+        }
+        if (scaling <= 0) {
+            IJ.error(pluginName, "Scaling must be greater than 0.");
+            return;
+        }
+
+        sphere = new Sphere(new Point3i(centerX, centerY, centerZ), radiusOuter);
         sphere.setPoleOffset(poleOffset);
         sphere.setZeroMeridianOffset(zeroMeridianOffset);
         intensityProjector = new IntensityProjector(inputImp);
 
-        IJ.showStatus("Map Project ...");
-        ImageProcessor outputIp = projectPlateCaree(scaling, radiusInner, radiusOuter);
-        String filenameParams = String.format("-map-cx%d-cy%d-cz%d-r%d-po%.2f-zo%.2f-s%.2f", centerX, centerY, centerZ, planeRadius, poleOffset, zeroMeridianOffset, scaling);
-        ImagePlus outputImp = new ImagePlus(Util.addToFilename(inputImp.getTitle(), filenameParams), outputIp);
+        // project
+        ImageProcessor[] outputIps = new ImageProcessor[nSpheres];
+        final double interval = (double) (radiusOuter - radiusInner) / nSpheres;
+        for (int i = 0; i < outputIps.length; ++i) {
+            final double inner = radiusInner + i * interval;
+            final double outer = inner + interval;
+            IJ.showStatus(String.format("%s (%d/%d) ...", pluginName, i + 1, outputIps.length));
+            outputIps[i] = projectPlateCaree(inner, outer);
+        }
+
+        // scale
+        final int planeIndex = (int) (Math.round(planePosition * outputIps.length)) - 1;
+        final int outputWidth = outputIps[planeIndex].getWidth();
+        final int outputHeight = outputIps[planeIndex].getHeight();
+        for (int i = 0; i < outputIps.length; ++i) {
+            ImageProcessor outputIp = outputIps[i];
+            if (outputIp.getWidth() != outputWidth || outputIp.getHeight() != outputHeight) {
+                outputIp.setInterpolationMethod(ImageProcessor.BICUBIC);
+                outputIp = outputIp.resize(outputWidth, outputHeight, true);
+            }
+            outputIps[i] = outputIp;
+        }
+
+        // stack
+        ImageStack outputStack = new ImageStack(outputWidth, outputHeight);
+        for (ImageProcessor outputIp : outputIps) {
+            outputStack.addSlice(outputIp);
+        }
+
+        String filenameParams = String.format("-map-cx%d-cy%d-cz%d-po%.2f-zo%.2f-ri%d-ro%d-pp%.2f-s%.2f",
+                centerX, centerY, centerZ, poleOffset, zeroMeridianOffset, radiusInner, radiusOuter, planePosition, scaling);
+        ImagePlus outputImp = new ImagePlus(Util.addToFilename(inputImp.getTitle(), filenameParams), outputStack);
         outputImp.show();
     }
 
-    private ImageProcessor projectPlateCaree(final double scaling, final double innerRadius, final double outerRadius) {
+    private ImageProcessor projectPlateCaree(final double innerRadius, final double outerRadius) {
+        final double sphereRadius = (int) Math.round(innerRadius + planePosition * (outerRadius - innerRadius));
+        sphere.setRadius(sphereRadius);
         final int outputSizeX = (int) Math.round(sphere.getVoxelCountAtEquator() * scaling);
         final int outputSizeY = (int) Math.round(outputSizeX / 2);
         ImageProcessor outputIp = inputImp.getProcessor().createProcessor(outputSizeX, outputSizeY);
