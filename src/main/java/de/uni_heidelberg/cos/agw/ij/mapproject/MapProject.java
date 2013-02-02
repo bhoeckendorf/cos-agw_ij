@@ -18,12 +18,11 @@
  */
 package de.uni_heidelberg.cos.agw.ij.mapproject;
 
-import de.uni_heidelberg.cos.agw.ij.util.IntensityProjector;
 import de.uni_heidelberg.cos.agw.ij.util.Util;
-import fiji.util.gui.GenericDialogPlus;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.gui.GenericDialog;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 import javax.vecmath.Point3i;
@@ -32,10 +31,6 @@ public class MapProject implements PlugInFilter {
 
     private final String pluginName = "Map Project";
     private ImagePlus inputImp;
-    private Sphere sphere;
-    private IntensityProjector intensityProjector;
-    private double planePosition = 0.67;
-    private double scaling = 1;
 
     @Override
     public int setup(String args, ImagePlus imp) {
@@ -45,17 +40,18 @@ public class MapProject implements PlugInFilter {
 
     @Override
     public void run(ImageProcessor inputIp) {
-        GenericDialogPlus dialog = new GenericDialogPlus(pluginName);
+        GenericDialog dialog = new GenericDialog(pluginName);
         dialog.addNumericField("Center_x", 480, 0, 4, "voxel");
         dialog.addNumericField("Center_y", 430, 0, 4, "voxel");
         dialog.addNumericField("Center_z", 380, 0, 4, "voxel");
-        dialog.addNumericField("Pole_offset", 0, 2, 4, "degrees");
-        dialog.addNumericField("Zero_meridian_offset", 0, 2, 4, "degrees");
-        dialog.addNumericField("Radius_inner", 330, 0, 4, "voxels");
-        dialog.addNumericField("Radius_outer", 330, 0, 4, "voxels");
-        dialog.addNumericField("Plane_position", planePosition, 2, 4, "0-1");
-        dialog.addNumericField("Nr_of_spheres", 1, 0, 4, "");
-        dialog.addNumericField("Scaling", scaling, 2, 4, "x");
+        dialog.addNumericField("Pole_axis_angle_longitude", 0, 2, 4, "degrees");
+        dialog.addNumericField("Pole_axis_angle_latitude", 0, 2, 4, "degrees");
+        dialog.addNumericField("Zero_meridian", 0, 2, 4, "degrees");
+        dialog.addNumericField("Inner_radius", 250, 0, 4, "voxels");
+        dialog.addNumericField("Outer_radius", 375, 0, 4, "voxels");
+        dialog.addNumericField("Plane_position", 0.67, 2, 4, "0-1");
+        dialog.addNumericField("Nr_of_concentric_projections", 1, 0, 4, "");
+        dialog.addNumericField("Scale", 1, 2, 4, "x");
         dialog.showDialog();
         if (dialog.wasCanceled()) {
             return;
@@ -64,15 +60,16 @@ public class MapProject implements PlugInFilter {
         final int centerX = (int) Math.round(dialog.getNextNumber());
         final int centerY = (int) Math.round(dialog.getNextNumber());
         final int centerZ = (int) Math.round(dialog.getNextNumber());
-        final double poleOffset = dialog.getNextNumber();
-        final double zeroMeridianOffset = dialog.getNextNumber();
-        final int radiusInner = (int) Math.round(dialog.getNextNumber());
-        final int radiusOuter = (int) Math.round(dialog.getNextNumber());
-        planePosition = dialog.getNextNumber();
-        int nSpheres = (int) Math.round(dialog.getNextNumber());
-        scaling = dialog.getNextNumber();
+        final double poleAxisLonAngle = dialog.getNextNumber();
+        final double poleAxisLatAngle = dialog.getNextNumber();
+        final double zeroMeridian = dialog.getNextNumber();
+        final int innerRadius = (int) Math.round(dialog.getNextNumber());
+        final int outerRadius = (int) Math.round(dialog.getNextNumber());
+        final double planePosition = dialog.getNextNumber();
+        final int nProjections = (int) Math.round(dialog.getNextNumber());
+        final double scale = dialog.getNextNumber();
 
-        if (nSpheres < 1) {
+        if (nProjections < 1) {
             IJ.error(pluginName, "Nr of spheres must be 1 or more.");
             return;
         }
@@ -80,31 +77,31 @@ public class MapProject implements PlugInFilter {
             IJ.error(pluginName, "Plane position must be between 0 and 1.");
             return;
         }
-        if (scaling <= 0) {
-            IJ.error(pluginName, "Scaling must be greater than 0.");
+        if (scale <= 0) {
+            IJ.error(pluginName, "Scale must be greater than 0.");
             return;
         }
 
-        sphere = new Sphere(new Point3i(centerX, centerY, centerZ), radiusOuter);
-        sphere.setPoleOffset(poleOffset);
-        sphere.setZeroMeridianOffset(zeroMeridianOffset);
-        intensityProjector = new IntensityProjector(inputImp);
+        PlateCaree plateCaree = new PlateCaree(
+                inputImp, new Point3i(centerX, centerY, centerZ),
+                poleAxisLonAngle, poleAxisLatAngle, zeroMeridian,
+                planePosition, scale);
 
         // project
-        ImageProcessor[] outputIps = new ImageProcessor[nSpheres];
-        final double interval = (double) (radiusOuter - radiusInner) / nSpheres;
-        for (int i = 0; i < outputIps.length; ++i) {
-            final double inner = radiusInner + i * interval;
+        ImageProcessor[] outputIps = new ImageProcessor[nProjections];
+        final double interval = (double) (outerRadius - innerRadius) / nProjections;
+        for (int i = 0; i < nProjections; ++i) {
+            final double inner = innerRadius + i * interval;
             final double outer = inner + interval;
-            IJ.showStatus(String.format("%s (%d/%d) ...", pluginName, i + 1, outputIps.length));
-            outputIps[i] = projectPlateCaree(inner, outer);
+            IJ.showStatus(String.format("%s (%d/%d) ...", pluginName, i + 1, nProjections));
+            outputIps[i] = plateCaree.project(inner, outer);
         }
 
         // scale
-        final int planeIndex = (int) (Math.round(planePosition * outputIps.length)) - 1;
+        final int planeIndex = (int) (Math.round(planePosition * nProjections)) - 1;
         final int outputWidth = outputIps[planeIndex].getWidth();
         final int outputHeight = outputIps[planeIndex].getHeight();
-        for (int i = 0; i < outputIps.length; ++i) {
+        for (int i = 0; i < nProjections; ++i) {
             ImageProcessor outputIp = outputIps[i];
             if (outputIp.getWidth() != outputWidth || outputIp.getHeight() != outputHeight) {
                 outputIp.setInterpolationMethod(ImageProcessor.BICUBIC);
@@ -113,36 +110,19 @@ public class MapProject implements PlugInFilter {
             outputIps[i] = outputIp;
         }
 
-        // stack
+        // stack, in inverse order (outermost first, innermost last)
         ImageStack outputStack = new ImageStack(outputWidth, outputHeight);
-        for (ImageProcessor outputIp : outputIps) {
-            outputStack.addSlice(outputIp);
+        for (int i = nProjections - 1; i >= 0; --i) {
+            outputStack.addSlice(outputIps[i]);
         }
 
-        String filenameParams = String.format("-map-cx%d-cy%d-cz%d-po%.2f-zo%.2f-ri%d-ro%d-pp%.2f-s%.2f",
-                centerX, centerY, centerZ, poleOffset, zeroMeridianOffset, radiusInner, radiusOuter, planePosition, scaling);
-        ImagePlus outputImp = new ImagePlus(Util.addToFilename(inputImp.getTitle(), filenameParams), outputStack);
+        String filenameParams = String.format(
+                "-%s-cx%d-cy%d-cz%d-lo%.2f-la%.2f-zm%.2f-ri%d-ro%d-pp%.2f-s%.2f",
+                pluginName, centerX, centerY, centerZ,
+                poleAxisLonAngle, poleAxisLatAngle, zeroMeridian,
+                innerRadius, outerRadius, planePosition, scale);
+        ImagePlus outputImp = new ImagePlus(
+                Util.addToFilename(inputImp.getTitle(), filenameParams), outputStack);
         outputImp.show();
-    }
-
-    private ImageProcessor projectPlateCaree(final double innerRadius, final double outerRadius) {
-        final double sphereRadius = (int) Math.round(innerRadius + planePosition * (outerRadius - innerRadius));
-        sphere.setRadius(sphereRadius);
-        final int outputSizeX = (int) Math.round(sphere.getVoxelCountAtEquator() * scaling);
-        final int outputSizeY = (int) Math.round(outputSizeX / 2);
-        ImageProcessor outputIp = inputImp.getProcessor().createProcessor(outputSizeX, outputSizeY);
-        double[] radii = {innerRadius, outerRadius};
-        for (int x = 0; x < outputSizeX; ++x) {
-            for (int y = 0; y < outputSizeY; ++y) {
-                double theta = (2 * Math.PI / outputSizeX) * x;
-                double phi = (Math.PI / outputSizeY) * y;
-                Point3i[] points = sphere.sphericalToCartesianGrid(phi, theta, radii);
-                intensityProjector.set(points[0], points[1]);
-                int value = intensityProjector.getMaximum();
-                outputIp.putPixelValue(x, y, value);
-            }
-            IJ.showProgress(x + 1, outputSizeX);
-        }
-        return outputIp;
     }
 }

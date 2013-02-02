@@ -18,118 +18,70 @@
  */
 package de.uni_heidelberg.cos.agw.ij.mapproject;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import javax.media.j3d.Transform3D;
-import javax.vecmath.Matrix3d;
 import javax.vecmath.Point3d;
 import javax.vecmath.Point3i;
 import javax.vecmath.Vector3d;
 
 public class Sphere {
 
-    private final Point3i center = new Point3i(0, 0, 0);
-    private final Vector3d vector = new Vector3d(center.x, center.y, center.z);
-    private double radius;
-    private double poleOffset = 0,
-            zeroMeridianOffset = 0;
-    private final Matrix3d poleOffsetMatrix = new Matrix3d();
-    private Transform3D transform;
+    private Point3i origin = new Point3i(0, 0, 0);
+    private double radius = 0;
+    private Transform3D poleAxisLatTransform = new Transform3D();
+    private Transform3D poleAxisLonTransform = new Transform3D();
+    private Transform3D zeroMeridianTransform = new Transform3D();
+    private Transform3D translation = new Transform3D();
 
-    public Sphere(Point3i center, final double radius) {
-        this.center.x = center.x - 1;
-        this.center.y = center.y - 1;
-        this.center.z = center.z;
-        vector.x = this.center.x;
-        vector.y = this.center.y;
-        vector.z = this.center.z;
-        setRadius(radius);
-        transform = new Transform3D(poleOffsetMatrix, vector, 1d);
-        poleOffsetMatrix.rotY(poleOffset);
+    public void setOrigin(final Point3i point) {
+        origin.x = point.x - 1;
+        origin.y = point.y - 1;
+        origin.z = point.z;
+        translation.setTranslation(new Vector3d(origin.x, origin.y, origin.z));
     }
 
-    final public void setRadius(final double radius) {
+    public void setRadius(final double radius) {
         this.radius = radius;
     }
 
-    public void setPoleOffset(double degrees) {
-        poleOffset = Math.toRadians(degrees);
-        poleOffsetMatrix.rotY(poleOffset);
-        transform = new Transform3D(poleOffsetMatrix, vector, 1d);
+    public void setPoleAxisLatAngle(final double degrees) {
+        poleAxisLatTransform.rotY(Math.toRadians(degrees));
     }
 
-    public double getPoleOffset() {
-        return Math.toDegrees(poleOffset);
+    public void setPoleAxisLonAngle(final double degrees) {
+        poleAxisLonTransform.rotX(Math.toRadians(degrees));
     }
 
-    public void setZeroMeridianOffset(double degrees) {
-        zeroMeridianOffset = Math.toRadians(degrees);
-    }
-
-    public double getZeroMeridianOffset() {
-        return Math.toDegrees(zeroMeridianOffset);
+    public void setZeroMeridian(final double degrees) {
+        zeroMeridianTransform.rotZ(Math.toRadians(degrees));
     }
 
     public int getVoxelCountAtEquator() {
-        return voxelsOfPhi(Math.PI / 2, 0.00001).size();
-    }
-
-    private List<Point3i> voxelsOfPhi(double phi, double stepSizeInRadians) {
         Set<Point3i> set = new HashSet<Point3i>();
-        List<Point3i> list = new ArrayList<Point3i>();
-        for (double theta = 0; theta < 2 * Math.PI; theta += stepSizeInRadians) {
-            Point3i cartesian = sphericalToCartesianGrid(phi, theta);
-            if (set.add(cartesian)) {
-                list.add(cartesian);
-            }
+        for (double theta = 0; theta < 2 * Math.PI; theta += 0.00001) {
+            Point3i cartesian = getCartesianGrid(Math.PI / 2, theta, radius, false);
+            set.add(cartesian);
         }
-        return list;
+        return set.size();
     }
 
-    private List<Point3i> voxelsOfTheta(double theta, double stepSizeInRadians) {
-        Set<Point3i> set = new HashSet<Point3i>();
-        List<Point3i> list = new ArrayList<Point3i>();
-        for (double phi = 0; phi < 2 * Math.PI; phi += stepSizeInRadians) {
-            Point3i cartesian = sphericalToCartesianGrid(phi, theta);
-            if (set.add(cartesian)) {
-                list.add(cartesian);
-            }
-        }
-        return list;
+    public Point3d getCartesian(final double lon, final double lat, final double radius) {
+        final double radiusSinLon = radius * Math.sin(lon);
+        double x = radiusSinLon * Math.cos(lat);
+        double y = radiusSinLon * Math.sin(lat);
+        double z = radius * Math.cos(lon);
+        return new Point3d(x, y, z);
     }
 
-    public Point3i sphericalToCartesianGrid(final double phi, double theta) {
-        theta += zeroMeridianOffset;
-        final double radiusSinPhi = radius * Math.sin(phi);
-        double x = radiusSinPhi * Math.cos(theta);
-        double y = radiusSinPhi * Math.sin(theta);
-        double z = radius * Math.cos(phi);
-
-        Point3d point = new Point3d(x, y, z);
-        transform.transform(point);
-
+    public Point3i getCartesianGrid(final double lon, final double lat, final double radius, final boolean doTransform) {
+        Point3d point = getCartesian(lat, lon, radius);
+        if (doTransform) {
+            zeroMeridianTransform.transform(point);
+            poleAxisLonTransform.transform(point);
+            poleAxisLatTransform.transform(point);
+            translation.transform(point);
+        }
         return new Point3i((int) Math.round(point.x), (int) Math.round(point.y), (int) Math.round(point.z));
-    }
-
-    public Point3i[] sphericalToCartesianGrid(final double phi, double theta, final double[] radii) {
-        theta += zeroMeridianOffset;
-        final double sinPhi = Math.sin(phi);
-        final double cosPhi = Math.cos(phi);
-        final double sinTheta = Math.sin(theta);
-        final double cosTheta = Math.cos(theta);
-        Point3i[] points = new Point3i[radii.length];
-        for (int i = 0; i < radii.length; ++i) {
-            final double radius = radii[i];
-            final double radiusSinPhi = radius * sinPhi;
-            double x = radiusSinPhi * cosTheta;
-            double y = radiusSinPhi * sinTheta;
-            double z = radius * cosPhi;
-            Point3d point = new Point3d(x, y, z);
-            transform.transform(point);
-            points[i] = new Point3i((int) Math.round(point.x), (int) Math.round(point.y), (int) Math.round(point.z));
-        }
-        return points;
     }
 }
