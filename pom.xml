@@ -2,33 +2,62 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
+    <name>COS AGW ImageJ plugin bundle</name>
+    <description>A bundle of ImageJ plug-ins developed at the Center for Organismal Studies, Heidelberg University.</description>
+    <url>https://github.com/bhoeckendorf/cos-agw_ij</url>
     <groupId>de.uni_heidelberg.cos.agw</groupId>
     <artifactId>cos-agw_ij</artifactId>
+
     <version>-SNAPSHOT</version>
-    <name>COS AGW ImageJ plugin bundle</name>
-    <repositories>
-        <repository>
-            <id>imagej.releases</id>
-            <url>http://maven.imagej.net/content/repositories/releases</url>
-        </repository>
-        <repository>
-            <id>imagej.3rdparty</id>
-            <url>http://maven.imagej.net/content/repositories/thirdparty</url>
-        </repository>
-        <repository>
-            <id>imagej.public</id>
-            <url>http://maven.imagej.net/content/repositories/public</url>
-        </repository>
-        <repository>
-            <id>imagej.snapshots</id>
-            <url>http://maven.imagej.net/content/repositories/snapshots</url>
-        </repository>
-    </repositories>
+    <packaging>jar</packaging>
+
+    <organization>
+        <name>Center for Organismal Studies, Heidelberg University</name>
+        <url>http://www.cos.uni-heidelberg.de</url>
+    </organization>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/bhoeckendorf/cos-agw_ij/issues</url>
+    </issueManagement>
+
+    <scm>
+        <connection>scm:git:git://github.com/bhoeckendorf/cos-agw_ij.git</connection>
+        <developerConnection>scm:git:git@github.com:bhoeckendorf/cos-agw_ij.git</developerConnection>
+        <url>https://github.com/bhoeckendorf/cos-agw_ij.git</url>
+    </scm>
+
+    <ciManagement>
+        <system>Jenkins</system>
+        <url>https://buildhive.cloudbees.com/job/bhoeckendorf/job/cos-agw_ij</url>
+    </ciManagement>
+
     <dependencies>
+        <dependency>
+            <groupId>java3d</groupId>
+            <artifactId>j3d-core</artifactId>
+            <version>1.5.2</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>java3d</groupId>
+            <artifactId>vecmath</artifactId>
+            <version>1.5.2</version>
+            <type>jar</type>
+        </dependency>
         <dependency>
             <groupId>net.imagej</groupId>
             <artifactId>ij</artifactId>
-            <version>1.47h</version>
+            <version>1.47i</version>
             <type>jar</type>
         </dependency>
         <dependency>
@@ -55,19 +84,8 @@
             <version>2.0.0-SNAPSHOT</version>
             <type>jar</type>
         </dependency>
-        <dependency>
-            <groupId>java3d</groupId>
-            <artifactId>j3d-core</artifactId>
-            <version>1.5.2</version>
-            <type>jar</type>
-        </dependency>
-        <dependency>
-            <groupId>java3d</groupId>
-            <artifactId>vecmath</artifactId>
-            <version>1.5.2</version>
-            <type>jar</type>
-        </dependency>
     </dependencies>
+
     <build>
         <resources>
             <resource>
@@ -81,11 +99,12 @@
                 </includes>
             </resource>
         </resources>
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.5</version>
+                <version>3.0</version>
                 <configuration>
                     <source>1.6</source>
                     <target>1.6</target>
@@ -93,22 +112,23 @@
             </plugin>
         </plugins>
     </build>
-    <url>https://github.com/bhoeckendorf/cos-agw_ij</url>
-    <description>A bundle of ImageJ plug-ins developed at the Center for Organismal Studies, Heidelberg University.</description>
-    <organization>
-        <name>Center for Organismal Studies, Heidelberg University</name>
-        <url>http://www.cos.uni-heidelberg.de</url>
-    </organization>
-    <issueManagement>
-        <url>https://github.com/bhoeckendorf/cos-agw_ij/issues</url>
-        <system>GitHub Issues</system>
-    </issueManagement>
-    <scm>
-        <url>https://github.com/bhoeckendorf/cos-agw_ij</url>
-        <connection>scm:git:https://github.com/bhoeckendorf/cos-agw_ij</connection>
-    </scm>
-    <ciManagement>
-        <system>Jenkins</system>
-        <url>https://buildhive.cloudbees.com/job/bhoeckendorf/job/cos-agw_ij</url>
-    </ciManagement>
+
+    <repositories>
+        <repository>
+            <id>imagej.releases</id>
+            <url>http://maven.imagej.net/content/repositories/releases</url>
+        </repository>
+        <repository>
+            <id>imagej.3rdparty</id>
+            <url>http://maven.imagej.net/content/repositories/thirdparty</url>
+        </repository>
+        <repository>
+            <id>imagej.public</id>
+            <url>http://maven.imagej.net/content/repositories/public</url>
+        </repository>
+        <repository>
+            <id>imagej.snapshots</id>
+            <url>http://maven.imagej.net/content/repositories/snapshots</url>
+        </repository>
+    </repositories>
 </project>
