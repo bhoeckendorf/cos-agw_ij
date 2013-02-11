@@ -33,7 +33,7 @@ Detailed documentation is available on the [Wiki](https://github.com/bhoeckendor
 
   - Map Project  
     Projects a 3D spherical object onto a single 2D plane like a world map.  
-    Supports performing multiple "concentric" projections to retain 3D spatial information.
+    Supports performing multiple concentric projections onto a stack of planes to retain 3D spatial information.
 
   - Orthogonal Project  
     Fast and memory-friendly maximum intensity projections along X and Y dimensions without turning the volume.
