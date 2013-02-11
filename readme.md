@@ -32,7 +32,8 @@ Detailed documentation is available on the [Wiki](https://github.com/bhoeckendor
     Scales an image or a volume to isotropic sampling using bicubic interpolation.
 
   - Map Project  
-    Projects a 3D spherical object onto a single 2D plane like a world map.
+    Projects a 3D spherical object onto a single 2D plane like a world map.  
+    Supports performing multiple "concentric" projections to retain 3D spatial information.
 
   - Orthogonal Project  
     Fast and memory-friendly maximum intensity projections along X and Y dimensions without turning the volume.
