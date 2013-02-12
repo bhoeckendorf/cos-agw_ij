@@ -31,13 +31,13 @@ public class IntensityProjector {
 
     private final ImagePlus imp;
     private final ImageStack stack;
-    private final LinearIterator linearIterator;
+    private final MutableLinearIterator linearIterator;
     private boolean is3d;
 
     public IntensityProjector(ImagePlus imp) {
         this.imp = imp;
         stack = this.imp.getStack();
-        linearIterator = new LinearIterator();
+        linearIterator = new MutableLinearIterator();
     }
 
     public void set(Point2i start, Point2i end) {

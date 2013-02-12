@@ -23,10 +23,10 @@ import javax.vecmath.Point3i;
 
 public class LineIterator3i implements Iterable<Point3i> {
 
-    private final LinearIterator linearIterator;
+    private final MutableLinearIterator linearIterator;
 
     public LineIterator3i() {
-        linearIterator = new LinearIterator();
+        linearIterator = new MutableLinearIterator();
     }
 
     public void set(Point3i start, Point3i end, final boolean includeFirst) {
