@@ -117,7 +117,7 @@ public class MapProject implements PlugInFilter {
         }
 
         String filenameParams = String.format(
-                "-%s-cx%d-cy%d-cz%d-lo%.2f-la%.2f-zm%.2f-ri%d-ro%d-pp%.2f-s%.2f",
+                "-%s-cx%d-cy%d-cz%d-lo%.2f-la%.2f-zm%.2f-ri%d-ro%d-pp%.2f-sc%.2f",
                 pluginName, centerX, centerY, centerZ,
                 poleAxisLonAngle, poleAxisLatAngle, zeroMeridian,
                 innerRadius, outerRadius, planePosition, scale);

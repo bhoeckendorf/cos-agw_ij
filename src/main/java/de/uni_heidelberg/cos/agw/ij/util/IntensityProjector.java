@@ -81,27 +81,12 @@ public class IntensityProjector {
     }
 
     private int getMaximum3D() {
-        ImageProcessor ip = null;
         int max = 0;
-        int currentZ = -1;
         for (int[] point : linearIterator) {
-            if (point[2] != currentZ) {
-                try {
-                    ip = stack.getProcessor(point[2]);
-                } catch (IllegalArgumentException e) {
-                    continue;
-                }
+            int next = (int) stack.getVoxel(point[0], point[1], point[2]);
+            if (next > max) {
+                max = next;
             }
-
-            try {
-                int next = ip.getPixel(point[0], point[1]);
-                if (next > max) {
-                    max = next;
-                }
-            } catch (NullPointerException e) {
-            }
-
-            currentZ = point[2];
         }
         return max;
     }
@@ -127,27 +112,12 @@ public class IntensityProjector {
     }
 
     private int getMinimum3D() {
-        ImageProcessor ip = null;
         int min = Integer.MAX_VALUE;
-        int currentZ = -1;
         for (int[] point : linearIterator) {
-            if (point[2] != currentZ) {
-                try {
-                    ip = stack.getProcessor(point[2]);
-                } catch (IllegalArgumentException e) {
-                    continue;
-                }
+            int next = (int) stack.getVoxel(point[0], point[1], point[2]);
+            if (next < min) {
+                min = next;
             }
-
-            try {
-                int next = ip.getPixel(point[0], point[1]);
-                if (next < min) {
-                    min = next;
-                }
-            } catch (NullPointerException e) {
-            }
-
-            currentZ = point[2];
         }
         return min;
     }
@@ -171,25 +141,10 @@ public class IntensityProjector {
     }
 
     private double getMean3D() {
-        ImageProcessor ip = null;
         int sum = 0;
         final int n = linearIterator.nRemainingSteps();
-        int currentZ = -1;
         for (int[] point : linearIterator) {
-            if (point[2] != currentZ) {
-                try {
-                    ip = stack.getProcessor(point[2]);
-                } catch (IllegalArgumentException e) {
-                    continue;
-                }
-            }
-
-            try {
-                sum += ip.getPixel(point[0], point[1]);
-            } catch (NullPointerException e) {
-            }
-
-            currentZ = point[2];
+            sum += (int) stack.getVoxel(point[0], point[1], point[2]);
         }
         return (int) Math.round((double) sum / n);
     }
