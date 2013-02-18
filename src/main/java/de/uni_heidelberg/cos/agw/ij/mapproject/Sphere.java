@@ -59,7 +59,7 @@ public class Sphere {
 
     public int getVoxelCountAtEquator() {
         Set<Point3i> set = new HashSet<Point3i>();
-        for (double theta = 0; theta < 2 * Math.PI; theta += 0.00001) {
+        for (double theta = 0; theta < 2 * Math.PI; theta += 0.000005) {
             Point3i cartesian = getCartesianGrid(Math.PI / 2, theta, radius, false);
             set.add(cartesian);
         }
