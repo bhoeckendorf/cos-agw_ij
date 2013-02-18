@@ -46,7 +46,7 @@ public class PlateCaree {
     }
 
     public ImageProcessor project(final double innerRadius, final double outerRadius) {
-        final double planeRadius = (int) Math.round(innerRadius + planePosition * (outerRadius - innerRadius));
+        final double planeRadius = innerRadius + planePosition * (outerRadius - innerRadius);
         sphere.setRadius(planeRadius);
         final int width = (int) Math.round(scale * sphere.getVoxelCountAtEquator());
         final int height = (int) Math.round((double) width / 2);

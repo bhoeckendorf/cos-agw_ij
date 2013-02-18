@@ -31,6 +31,17 @@ public class MapProject implements PlugInFilter {
 
     private final String pluginName = "Map Project";
     private ImagePlus inputImp;
+    private static int centerX = 480;
+    private static int centerY = 430;
+    private static int centerZ = 380;
+    private static double poleAxisLonAngle = 0;
+    private static double poleAxisLatAngle = 0;
+    private static double zeroMeridian = 0;
+    private static double innerRadius = 250;
+    private static double outerRadius = 375;
+    private static double planePosition = 0.7;
+    private static int nProjections = 1;
+    private static double scale = 1;
 
     @Override
     public int setup(String args, ImagePlus imp) {
@@ -41,33 +52,33 @@ public class MapProject implements PlugInFilter {
     @Override
     public void run(ImageProcessor inputIp) {
         GenericDialog dialog = new GenericDialog(pluginName);
-        dialog.addNumericField("Center_x", 480, 0, 4, "voxel");
-        dialog.addNumericField("Center_y", 430, 0, 4, "voxel");
-        dialog.addNumericField("Center_z", 380, 0, 4, "voxel");
-        dialog.addNumericField("Pole_axis_angle_longitude", 0, 2, 4, "degrees");
-        dialog.addNumericField("Pole_axis_angle_latitude", 0, 2, 4, "degrees");
-        dialog.addNumericField("Zero_meridian", 0, 2, 4, "degrees");
-        dialog.addNumericField("Inner_radius", 250, 0, 4, "voxels");
-        dialog.addNumericField("Outer_radius", 375, 0, 4, "voxels");
-        dialog.addNumericField("Plane_position", 0.67, 2, 4, "0-1");
-        dialog.addNumericField("Nr_of_concentric_projections", 1, 0, 4, "");
-        dialog.addNumericField("Scale", 1, 2, 4, "x");
+        dialog.addNumericField("Center_x", centerX, 0, 6, "voxel");
+        dialog.addNumericField("Center_y", centerY, 0, 6, "voxel");
+        dialog.addNumericField("Center_z", centerZ, 0, 6, "voxel");
+        dialog.addNumericField("Pole_axis_angle_longitude", poleAxisLonAngle, 2, 6, "degrees");
+        dialog.addNumericField("Pole_axis_angle_latitude", poleAxisLatAngle, 2, 6, "degrees");
+        dialog.addNumericField("Zero_meridian", zeroMeridian, 2, 6, "degrees");
+        dialog.addNumericField("Inner_radius", innerRadius, 2, 6, "voxels");
+        dialog.addNumericField("Outer_radius", outerRadius, 2, 6, "voxels");
+        dialog.addNumericField("Plane_position", planePosition, 2, 6, "0-1");
+        dialog.addNumericField("Nr_of_concentric_projections", nProjections, 0, 6, "");
+        dialog.addNumericField("Scale", scale, 2, 6, "x");
         dialog.showDialog();
         if (dialog.wasCanceled()) {
             return;
         }
 
-        final int centerX = (int) Math.round(dialog.getNextNumber());
-        final int centerY = (int) Math.round(dialog.getNextNumber());
-        final int centerZ = (int) Math.round(dialog.getNextNumber());
-        final double poleAxisLonAngle = dialog.getNextNumber();
-        final double poleAxisLatAngle = dialog.getNextNumber();
-        final double zeroMeridian = dialog.getNextNumber();
-        final int innerRadius = (int) Math.round(dialog.getNextNumber());
-        final int outerRadius = (int) Math.round(dialog.getNextNumber());
-        final double planePosition = dialog.getNextNumber();
-        final int nProjections = (int) Math.round(dialog.getNextNumber());
-        final double scale = dialog.getNextNumber();
+        centerX = (int) Math.round(dialog.getNextNumber());
+        centerY = (int) Math.round(dialog.getNextNumber());
+        centerZ = (int) Math.round(dialog.getNextNumber());
+        poleAxisLonAngle = dialog.getNextNumber();
+        poleAxisLatAngle = dialog.getNextNumber();
+        zeroMeridian = dialog.getNextNumber();
+        innerRadius = dialog.getNextNumber();
+        outerRadius = dialog.getNextNumber();
+        planePosition = dialog.getNextNumber();
+        nProjections = (int) Math.round(dialog.getNextNumber());
+        scale = dialog.getNextNumber();
 
         if (nProjections < 1) {
             IJ.error(pluginName, "Nr of spheres must be 1 or more.");
@@ -117,7 +128,7 @@ public class MapProject implements PlugInFilter {
         }
 
         String filenameParams = String.format(
-                "-%s-cx%d-cy%d-cz%d-lo%.2f-la%.2f-zm%.2f-ri%d-ro%d-pp%.2f-sc%.2f",
+                "-%s-cx%d-cy%d-cz%d-lo%.2f-la%.2f-zm%.2f-ri%.2f-ro%.2f-pp%.2f-sc%.2f",
                 pluginName, centerX, centerY, centerZ,
                 poleAxisLonAngle, poleAxisLatAngle, zeroMeridian,
                 innerRadius, outerRadius, planePosition, scale);
