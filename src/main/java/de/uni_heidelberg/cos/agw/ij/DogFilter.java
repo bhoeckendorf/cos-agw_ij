@@ -61,7 +61,7 @@ public class DogFilter<T extends NumericType<T> & NativeType<T> & RealType<T>>
         final double sigma2 = dialog.getNextNumber();
         final boolean useAnisotropicKernel = dialog.getNextBoolean();
         ImagePlus resultImp = run(inputImp, sigma1, sigma2,
-                                  useAnisotropicKernel);
+                useAnisotropicKernel);
         resultImp.show();
     }
 
@@ -83,7 +83,7 @@ public class DogFilter<T extends NumericType<T> & NativeType<T> & RealType<T>>
 
         ImageCalculator imageCalculator = new ImageCalculator();
         ImagePlus resultImp = imageCalculator.run("Subtract create stack",
-                                                  sigma1Imp, sigma2Imp);
+                sigma1Imp, sigma2Imp);
         sigma1Imp.close();
         sigma2Imp.close();
 
@@ -104,7 +104,7 @@ public class DogFilter<T extends NumericType<T> & NativeType<T> & RealType<T>>
     private ImagePlus gaussianBlur(final Img<T> img, final double sigma,
             final double[] anisotropy) {
         final double[] sigmaArray = getSigma(sigma, img.numDimensions(),
-                                             anisotropy);
+                anisotropy);
         final Img<T> output = Gauss.inDouble(sigmaArray, img);
         return ImageJFunctions.wrap(output, "");
     }
@@ -125,7 +125,7 @@ public class DogFilter<T extends NumericType<T> & NativeType<T> & RealType<T>>
     }
 
     private double[] getSigma(final double sigma, final int ndimensions) {
-        final double[] sigmaArray = new double[ndimensions];
+        final double[] sigmaArray = new double[ndimensions >= 3 ? 3 : 2];
         for (int i = 0; i < sigmaArray.length; ++i) {
             sigmaArray[i] = sigma;
         }
