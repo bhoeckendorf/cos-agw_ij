@@ -18,134 +18,119 @@
  */
 package de.uni_heidelberg.cos.agw.ij.util;
 
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.process.ImageProcessor;
-import javax.vecmath.Point2i;
-import javax.vecmath.Point3i;
+import net.imglib2.Localizable;
+import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.RealRandomAccess;
+import net.imglib2.RealRandomAccessible;
+import net.imglib2.interpolation.InterpolatorFactory;
+import net.imglib2.ops.operation.BinaryOperation;
+import net.imglib2.type.Type;
+import net.imglib2.view.Views;
 
-/* TODO: Are 2 separate methods required for 2D and 3D? Is there a significant
- * performance difference?
- */
-public class IntensityProjector {
+public class IntensityProjector<T extends Type<T>> {
 
-    private final ImagePlus imp;
-    private final ImageStack stack;
-    private final MutableLinearIterator linearIterator;
-    private boolean is3d;
+    private final RealRandomAccessible<T> img;
+    private final RealRandomAccess<T> ra;
+    private double[] start, step;
+    private int nSteps;
 
-    public IntensityProjector(ImagePlus imp) {
-        this.imp = imp;
-        stack = this.imp.getStack();
-        linearIterator = new MutableLinearIterator();
+    public IntensityProjector(RealRandomAccessible<T> img) {
+        this.img = img;
+        ra = this.img.realRandomAccess();
     }
 
-    public void set(Point2i start, Point2i end) {
-        int[] startArray = {start.x, start.y};
-        int[] endArray = {end.x, end.y};
-        set(startArray, endArray);
+    public IntensityProjector(RandomAccessibleInterval<T> img, InterpolatorFactory interpolation) {
+        this.img = Views.interpolate(img, interpolation);
+        ra = this.img.realRandomAccess();
     }
 
-    public void set(Point3i start, Point3i end) {
-        int[] startArray = {start.x, start.y, start.z};
-        int[] endArray = {end.x, end.y, end.z};
-        set(startArray, endArray);
-    }
-
-    public void set(int[] start, int[] end) {
+    public void set(final double[] start, final double[] end) {
+        final int nDims = start.length;
+        if (end.length != nDims) {
+            throw new IllegalArgumentException("Number of dimensions of start and end don't match.");
+        }
         if (start.length == 1 || start.length > 3 || end.length == 1 || end.length > 3) {
             throw new IllegalArgumentException("IntensityProjector works only in 2 and 3 dimensions.");
         }
-        linearIterator.set(start, end, true);
-        is3d = (start.length == 3) ? true : false;
+        this.start = start.clone();
+        step = getStep(start, end);
+        nSteps = getNSteps(start, end, step);
     }
 
-    public int getMaximum() {
-        if (is3d) {
-            return getMaximum3D();
-        } else {
-            return getMaximum2D();
+    private double[] getStep(final double[] start, final double[] end) {
+        double[] step = new double[start.length];
+        for (int i = 0; i < start.length; ++i) {
+            step[i] = end[i] - this.start[i];
         }
-    }
-
-    private int getMaximum2D() {
-        ImageProcessor ip = imp.getProcessor();
-        int max = 0;
-        for (int[] point : linearIterator) {
-            int next = ip.getPixel(point[0], point[1]);
-            if (next > max) {
-                max = next;
+        double maxValue = step[0] > 0 ? step[0] : -step[0];
+        for (int i = 1; i < step.length; ++i) {
+            double nextValue = step[i] > 0 ? step[i] : -step[i];
+            if (nextValue > maxValue) {
+                maxValue = nextValue;
             }
         }
-        return max;
+        for (int i = 0; i < step.length; ++i) {
+            step[i] /= maxValue;
+        }
+        return step;
     }
 
-    private int getMaximum3D() {
-        int max = 0;
-        for (int[] point : linearIterator) {
-            int next = (int) stack.getVoxel(point[0], point[1], point[2]);
-            if (next > max) {
-                max = next;
+    private int getNSteps(final double[] start, final double[] end, final double[] step) {
+        int nSteps = Integer.MIN_VALUE;
+        for (int i = 0; i < start.length; ++i) {
+            if (step[i] == 0) {
+                continue;
+            }
+            int next = (int) ((end[i] - this.start[i]) / step[i]);
+            if (next < 0) {
+                next = -next;
+            }
+            if (next > nSteps) {
+                nSteps = next;
             }
         }
-        return max;
+        return nSteps;
     }
 
-    public int getMinimum() {
-        if (is3d) {
-            return getMaximum3D();
-        } else {
-            return getMaximum2D();
-        }
+    public int getNSteps() {
+        return nSteps;
     }
 
-    private int getMinimum2D() {
-        ImageProcessor ip = imp.getProcessor();
-        int min = Integer.MAX_VALUE;
-        for (int[] point : linearIterator) {
-            int next = ip.getPixel(point[0], point[1]);
-            if (next < min) {
-                min = next;
+    public void set(final Localizable start, final Localizable end) {
+        double[] startArray = new double[start.numDimensions()];
+        start.localize(startArray);
+        double[] endArray = new double[end.numDimensions()];
+        end.localize(endArray);
+        set(startArray, endArray);
+    }
+
+    //TODO: This method returns null if no point of the line is within the volume.
+    public T compute(final BinaryOperation<T, T, T> op) {
+        T value = null;
+        int currentStep = 0;
+        ra.setPosition(start);
+
+        // Find first point within volume, get its value as initial value.
+        do {
+            try {
+                value = ra.get().copy();
+            } catch (ArrayIndexOutOfBoundsException ex) {
+                ra.move(step);
+                currentStep++;
+            }
+        } while (value == null && currentStep < nSteps);
+
+        // Handle subsequent points within volume, break when reaching boundary.
+        while (currentStep < nSteps) {
+            try {
+                currentStep++;
+                ra.move(step);
+                T next = ra.get();
+                op.compute(next, value, value);
+            } catch (ArrayIndexOutOfBoundsException ex) {
+                break;
             }
         }
-        return min;
-    }
-
-    private int getMinimum3D() {
-        int min = Integer.MAX_VALUE;
-        for (int[] point : linearIterator) {
-            int next = (int) stack.getVoxel(point[0], point[1], point[2]);
-            if (next < min) {
-                min = next;
-            }
-        }
-        return min;
-    }
-
-    public double getMean() {
-        if (is3d) {
-            return getMean3D();
-        } else {
-            return getMean2D();
-        }
-    }
-
-    private double getMean2D() {
-        ImageProcessor ip = imp.getProcessor();
-        int sum = 0;
-        final int n = linearIterator.nRemainingSteps();
-        for (int[] point : linearIterator) {
-            sum += ip.getPixel(point[0], point[1]);
-        }
-        return (int) Math.round((double) sum / n);
-    }
-
-    private double getMean3D() {
-        int sum = 0;
-        final int n = linearIterator.nRemainingSteps();
-        for (int[] point : linearIterator) {
-            sum += (int) stack.getVoxel(point[0], point[1], point[2]);
-        }
-        return (int) Math.round((double) sum / n);
+        return value;
     }
 }

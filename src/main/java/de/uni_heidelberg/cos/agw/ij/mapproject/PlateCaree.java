@@ -23,6 +23,11 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.process.ImageProcessor;
 import javax.vecmath.Point3i;
+import net.imglib2.img.display.imagej.ImageJFunctions;
+import net.imglib2.interpolation.randomaccess.NearestNeighborInterpolatorFactory;
+import net.imglib2.ops.operation.real.binary.RealMax;
+import net.imglib2.type.Type;
+import net.imglib2.type.numeric.IntegerType;
 
 public class PlateCaree {
 
@@ -37,7 +42,7 @@ public class PlateCaree {
         inputImp = imp;
         this.planePosition = planePosition;
         this.scale = scale;
-        projector = new IntensityProjector(inputImp);
+        projector = new IntensityProjector(ImageJFunctions.wrap(imp), new NearestNeighborInterpolatorFactory());
         sphere = new Sphere();
         sphere.setOrigin(origin);
         sphere.setPoleAxisLonAngle(poleAxisLonAngle);
@@ -50,6 +55,7 @@ public class PlateCaree {
         sphere.setRadius(planeRadius);
         final int width = (int) Math.round(scale * sphere.getVoxelCountAtEquator());
         final int height = (int) Math.round((double) width / 2);
+        RealMax max = new RealMax();
         ImageProcessor outputIp = inputImp.getProcessor().createProcessor(width, height);
         for (int x = 0; x < width; ++x) {
             for (int y = 0; y < height; ++y) {
@@ -57,9 +63,12 @@ public class PlateCaree {
                 final double lat = (Math.PI / (height - 1)) * y;
                 Point3i innerPoint = sphere.getCartesianGrid(lon, lat, innerRadius, true);
                 Point3i outerPoint = sphere.getCartesianGrid(lon, lat, outerRadius, true);
-                projector.set(innerPoint, outerPoint);
-                int value = projector.getMaximum();
-                outputIp.putPixelValue(x, y, value);
+                projector.set(new double[]{innerPoint.x, innerPoint.y, innerPoint.z}, new double[]{outerPoint.x, outerPoint.y, outerPoint.z});
+                Type value = projector.compute(max);
+                if (value instanceof IntegerType) {
+                    int v = ((IntegerType) value).getInteger();
+                    outputIp.putPixelValue(x, y, v);
+                }
             }
             IJ.showProgress(x + 1, width);
         }
