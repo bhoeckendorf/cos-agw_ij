@@ -25,16 +25,15 @@ import ij.ImageStack;
 import ij.gui.GenericDialog;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
-import javax.vecmath.Point3i;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 
 public class MapProject implements PlugInFilter {
 
     private final String pluginName = "Map Project";
     private ImagePlus inputImp;
-    private static int centerX = 480;
-    private static int centerY = 430;
-    private static int centerZ = 380;
+    private static double centerX = 480;
+    private static double centerY = 430;
+    private static double centerZ = 380;
     private static double poleAxisLonAngle = 0;
     private static double poleAxisLatAngle = 0;
     private static double zeroMeridian = 0;
@@ -53,25 +52,25 @@ public class MapProject implements PlugInFilter {
     @Override
     public void run(ImageProcessor inputIp) {
         GenericDialog dialog = new GenericDialog(pluginName);
-        dialog.addNumericField("Center_x", centerX, 0, 6, "voxel");
-        dialog.addNumericField("Center_y", centerY, 0, 6, "voxel");
-        dialog.addNumericField("Center_z", centerZ, 0, 6, "voxel");
-        dialog.addNumericField("Pole_axis_angle_longitude", poleAxisLonAngle, 2, 6, "degrees");
-        dialog.addNumericField("Pole_axis_angle_latitude", poleAxisLatAngle, 2, 6, "degrees");
-        dialog.addNumericField("Zero_meridian", zeroMeridian, 2, 6, "degrees");
-        dialog.addNumericField("Inner_radius", innerRadius, 2, 6, "voxels");
-        dialog.addNumericField("Outer_radius", outerRadius, 2, 6, "voxels");
-        dialog.addNumericField("Plane_position", planePosition, 2, 6, "0-1");
-        dialog.addNumericField("Nr_of_concentric_projections", nProjections, 0, 6, "");
-        dialog.addNumericField("Scale", scale, 2, 6, "x");
+        dialog.addNumericField("Center_x", centerX, 2, 7, "voxel");
+        dialog.addNumericField("Center_y", centerY, 2, 7, "voxel");
+        dialog.addNumericField("Center_z", centerZ, 2, 7, "voxel");
+        dialog.addNumericField("Pole_axis_angle_longitude", poleAxisLonAngle, 2, 7, "degrees");
+        dialog.addNumericField("Pole_axis_angle_latitude", poleAxisLatAngle, 2, 7, "degrees");
+        dialog.addNumericField("Zero_meridian", zeroMeridian, 2, 7, "degrees");
+        dialog.addNumericField("Inner_radius", innerRadius, 2, 7, "voxels");
+        dialog.addNumericField("Outer_radius", outerRadius, 2, 7, "voxels");
+        dialog.addNumericField("Plane_position", planePosition, 2, 7, "0-1");
+        dialog.addNumericField("Nr_of_concentric_projections", nProjections, 0, 7, "");
+        dialog.addNumericField("Scale", scale, 2, 7, "x");
         dialog.showDialog();
         if (dialog.wasCanceled()) {
             return;
         }
 
-        centerX = (int) Math.round(dialog.getNextNumber());
-        centerY = (int) Math.round(dialog.getNextNumber());
-        centerZ = (int) Math.round(dialog.getNextNumber());
+        centerX = dialog.getNextNumber();
+        centerY = dialog.getNextNumber();
+        centerZ = dialog.getNextNumber();
         poleAxisLonAngle = dialog.getNextNumber();
         poleAxisLatAngle = dialog.getNextNumber();
         zeroMeridian = dialog.getNextNumber();
@@ -129,7 +128,7 @@ public class MapProject implements PlugInFilter {
         }
 
         String filenameParams = String.format(
-                "-%s-cx%d-cy%d-cz%d-lo%.2f-la%.2f-zm%.2f-ri%.2f-ro%.2f-pp%.2f-sc%.2f",
+                "-%s-cx%.2f-cy%.2f-cz%.2f-lo%.2f-la%.2f-zm%.2f-ri%.2f-ro%.2f-pp%.2f-sc%.2f",
                 pluginName, centerX, centerY, centerZ,
                 poleAxisLonAngle, poleAxisLatAngle, zeroMeridian,
                 innerRadius, outerRadius, planePosition, scale);
