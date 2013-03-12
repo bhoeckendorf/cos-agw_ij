@@ -44,12 +44,6 @@
     <dependencies>
         <dependency>
             <groupId>java3d</groupId>
-            <artifactId>j3d-core</artifactId>
-            <version>1.5.2</version>
-            <type>jar</type>
-        </dependency>
-        <dependency>
-            <groupId>java3d</groupId>
             <artifactId>vecmath</artifactId>
             <version>1.5.2</version>
             <type>jar</type>
