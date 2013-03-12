@@ -94,7 +94,7 @@ public class MapProject implements PlugInFilter {
         }
 
         PlateCaree plateCaree = new PlateCaree(
-                inputImp, new Point3i(centerX, centerY, centerZ),
+                inputImp, new double[]{centerX, centerY, centerZ},
                 poleAxisLonAngle, poleAxisLatAngle, zeroMeridian,
                 planePosition, scale);
 

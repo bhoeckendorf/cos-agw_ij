@@ -22,7 +22,6 @@ import de.uni_heidelberg.cos.agw.ij.util.IntensityProjector;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.process.ImageProcessor;
-import javax.vecmath.Point3i;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.interpolation.randomaccess.NearestNeighborInterpolatorFactory;
 import net.imglib2.ops.operation.real.binary.RealMax;
@@ -36,7 +35,7 @@ public class PlateCaree {
     private final Sphere sphere;
     private final double planePosition, scale;
 
-    public PlateCaree(final ImagePlus imp, final Point3i origin,
+    public PlateCaree(final ImagePlus imp, final double[] origin,
             final double poleAxisLonAngle, final double poleAxisLatAngle, final double zeroMeridian,
             final double planePosition, final double scale) {
         inputImp = imp;
@@ -57,13 +56,15 @@ public class PlateCaree {
         final int height = (int) Math.round((double) width / 2);
         RealMax max = new RealMax();
         ImageProcessor outputIp = inputImp.getProcessor().createProcessor(width, height);
+        double[] inner = new double[3];
+        double[] outer = new double[3];
         for (int x = 0; x < width; ++x) {
             for (int y = 0; y < height; ++y) {
                 final double lon = (2 * Math.PI / (width - 1)) * x;
                 final double lat = (Math.PI / (height - 1)) * y;
-                Point3i innerPoint = sphere.getCartesianGrid(lon, lat, innerRadius, true);
-                Point3i outerPoint = sphere.getCartesianGrid(lon, lat, outerRadius, true);
-                projector.set(new double[]{innerPoint.x, innerPoint.y, innerPoint.z}, new double[]{outerPoint.x, outerPoint.y, outerPoint.z});
+                sphere.getCartesian(lon, lat, innerRadius, true, inner);
+                sphere.getCartesian(lon, lat, outerRadius, true, outer);
+                projector.set(inner.clone(), outer.clone());
                 Type value = projector.compute(max);
                 if (value instanceof IntegerType) {
                     int v = ((IntegerType) value).getInteger();
