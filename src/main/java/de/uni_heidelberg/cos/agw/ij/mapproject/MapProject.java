@@ -26,6 +26,7 @@ import ij.gui.GenericDialog;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 import javax.vecmath.Point3i;
+import net.imglib2.img.display.imagej.ImageJFunctions;
 
 public class MapProject implements PlugInFilter {
 
@@ -94,7 +95,7 @@ public class MapProject implements PlugInFilter {
         }
 
         PlateCaree plateCaree = new PlateCaree(
-                inputImp, new double[]{centerX, centerY, centerZ},
+                ImageJFunctions.wrap(inputImp), new double[]{centerX, centerY, centerZ},
                 poleAxisLonAngle, poleAxisLatAngle, zeroMeridian,
                 planePosition, scale);
 
@@ -105,7 +106,7 @@ public class MapProject implements PlugInFilter {
             final double inner = innerRadius + i * interval;
             final double outer = inner + interval;
             IJ.showStatus(String.format("%s (%d/%d) ...", pluginName, i + 1, nProjections));
-            outputIps[i] = plateCaree.project(inner, outer);
+            outputIps[i] = ImageJFunctions.wrap(plateCaree.project(inner, outer), "").getProcessor();
         }
 
         // scale

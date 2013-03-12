@@ -20,28 +20,26 @@ package de.uni_heidelberg.cos.agw.ij.mapproject;
 
 import de.uni_heidelberg.cos.agw.ij.util.IntensityProjector;
 import ij.IJ;
-import ij.ImagePlus;
-import ij.process.ImageProcessor;
-import net.imglib2.img.display.imagej.ImageJFunctions;
+import net.imglib2.RandomAccess;
+import net.imglib2.img.Img;
 import net.imglib2.interpolation.randomaccess.NearestNeighborInterpolatorFactory;
 import net.imglib2.ops.operation.real.binary.RealMax;
 import net.imglib2.type.Type;
-import net.imglib2.type.numeric.IntegerType;
 
-public class PlateCaree {
+public class PlateCaree<T extends Type<T>> {
 
-    private final ImagePlus inputImp;
-    private final IntensityProjector projector;
+    private final Img<T> inputImg;
+    private final IntensityProjector<T> projector;
     private final Sphere sphere;
     private final double planePosition, scale;
 
-    public PlateCaree(final ImagePlus imp, final double[] origin,
+    public PlateCaree(final Img<T> img, final double[] origin,
             final double poleAxisLonAngle, final double poleAxisLatAngle, final double zeroMeridian,
             final double planePosition, final double scale) {
-        inputImp = imp;
+        inputImg = img;
         this.planePosition = planePosition;
         this.scale = scale;
-        projector = new IntensityProjector(ImageJFunctions.wrap(imp), new NearestNeighborInterpolatorFactory());
+        projector = new IntensityProjector<T>(inputImg, new NearestNeighborInterpolatorFactory());
         sphere = new Sphere();
         sphere.setOrigin(origin);
         sphere.setPoleAxisLonAngle(poleAxisLonAngle);
@@ -49,30 +47,35 @@ public class PlateCaree {
         sphere.setZeroMeridian(zeroMeridian);
     }
 
-    public ImageProcessor project(final double innerRadius, final double outerRadius) {
+    public Img<T> project(final double innerRadius, final double outerRadius) {
         final double planeRadius = innerRadius + planePosition * (outerRadius - innerRadius);
         sphere.setRadius(planeRadius);
         final int width = (int) Math.round(scale * sphere.getVoxelCountAtEquator());
         final int height = (int) Math.round((double) width / 2);
-        RealMax max = new RealMax();
-        ImageProcessor outputIp = inputImp.getProcessor().createProcessor(width, height);
-        double[] inner = new double[3];
-        double[] outer = new double[3];
+        final RealMax max = new RealMax();
+        final Img<T> outputImg = inputImg.factory().create(new int[]{width, height}, inputImg.firstElement());
+        final RandomAccess<T> outputRa = outputImg.randomAccess();
+        final double[] inner = new double[3];
+        final double[] outer = new double[3];
+        final int[] position = new int[2];
         for (int x = 0; x < width; ++x) {
+            position[0] = x;
             for (int y = 0; y < height; ++y) {
+                position[1] = y;
+                outputRa.setPosition(position);
                 final double lon = (2 * Math.PI / (width - 1)) * x;
                 final double lat = (Math.PI / (height - 1)) * y;
                 sphere.getCartesian(lon, lat, innerRadius, true, inner);
                 sphere.getCartesian(lon, lat, outerRadius, true, outer);
                 projector.set(inner.clone(), outer.clone());
-                Type value = projector.compute(max);
-                if (value instanceof IntegerType) {
-                    int v = ((IntegerType) value).getInteger();
-                    outputIp.putPixelValue(x, y, v);
+                T value = projector.compute(max);
+                try {
+                    outputRa.get().set(value);
+                } catch (NullPointerException ex) {
                 }
             }
-            IJ.showProgress(x + 1, width);
+            IJ.showProgress(x, width);
         }
-        return outputIp;
+        return outputImg;
     }
 }
