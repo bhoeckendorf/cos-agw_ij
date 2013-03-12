@@ -54,8 +54,11 @@ public class MapProject<T extends NumericType<T> & NativeType<T>> implements Plu
 
     @Override
     public int setup(String args, ImagePlus imp) {
-        inputImg = ImageJFunctions.wrap(imp);
-        imageTitle = imp.getTitle();
+        try {
+            inputImg = ImageJFunctions.wrap(imp);
+            imageTitle = imp.getTitle();
+        } catch (NullPointerException ex) {
+        }
         return STACK_REQUIRED + DOES_ALL;
     }
 
