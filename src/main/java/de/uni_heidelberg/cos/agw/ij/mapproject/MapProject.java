@@ -21,16 +21,23 @@ package de.uni_heidelberg.cos.agw.ij.mapproject;
 import de.uni_heidelberg.cos.agw.ij.util.Util;
 import ij.IJ;
 import ij.ImagePlus;
-import ij.ImageStack;
 import ij.gui.GenericDialog;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
+import net.imglib2.img.Img;
 import net.imglib2.img.display.imagej.ImageJFunctions;
+import net.imglib2.interpolation.InterpolatorFactory;
+import net.imglib2.interpolation.randomaccess.LanczosInterpolatorFactory;
+import net.imglib2.interpolation.randomaccess.NLinearInterpolatorFactory;
+import net.imglib2.interpolation.randomaccess.NearestNeighborInterpolatorFactory;
+import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.NumericType;
 
-public class MapProject implements PlugInFilter {
+public class MapProject<T extends NumericType<T> & NativeType<T>> implements PlugInFilter {
 
     private final String pluginName = "Map Project";
-    private ImagePlus inputImp;
+    private Img<T> inputImg;
+    private String imageTitle;
     private static double centerX = 480;
     private static double centerY = 430;
     private static double centerZ = 380;
@@ -42,15 +49,18 @@ public class MapProject implements PlugInFilter {
     private static double planePosition = 0.7;
     private static int nProjections = 1;
     private static double scale = 1;
+    private static int interpolation3dIndex = 1;
+    private final String[] interpolations3d = {"Nearest Neighbor", "Linear", "Lanczos"};
 
     @Override
     public int setup(String args, ImagePlus imp) {
-        inputImp = imp;
-        return STACK_REQUIRED + DOES_8G + DOES_16;
+        inputImg = ImageJFunctions.wrap(imp);
+        imageTitle = imp.getTitle();
+        return STACK_REQUIRED + DOES_ALL;
     }
 
     @Override
-    public void run(ImageProcessor inputIp) {
+    public void run(ImageProcessor ip) {
         GenericDialog dialog = new GenericDialog(pluginName);
         dialog.addNumericField("Center_x", centerX, 2, 7, "voxel");
         dialog.addNumericField("Center_y", centerY, 2, 7, "voxel");
@@ -63,6 +73,7 @@ public class MapProject implements PlugInFilter {
         dialog.addNumericField("Plane_position", planePosition, 2, 7, "0-1");
         dialog.addNumericField("Nr_of_concentric_projections", nProjections, 0, 7, "");
         dialog.addNumericField("Scale", scale, 2, 7, "x");
+        dialog.addChoice("3D_interpolation", interpolations3d, interpolations3d[interpolation3dIndex]);
         dialog.showDialog();
         if (dialog.wasCanceled()) {
             return;
@@ -79,6 +90,7 @@ public class MapProject implements PlugInFilter {
         planePosition = dialog.getNextNumber();
         nProjections = (int) Math.round(dialog.getNextNumber());
         scale = dialog.getNextNumber();
+        interpolation3dIndex = dialog.getNextChoiceIndex();
 
         if (nProjections < 1) {
             IJ.error(pluginName, "Nr of spheres must be 1 or more.");
@@ -93,47 +105,30 @@ public class MapProject implements PlugInFilter {
             return;
         }
 
-        PlateCaree plateCaree = new PlateCaree(
-                ImageJFunctions.wrap(inputImp), new double[]{centerX, centerY, centerZ},
+        InterpolatorFactory<T, T> interpolation = null;
+        switch (interpolation3dIndex) {
+            case 0:
+                interpolation = new NearestNeighborInterpolatorFactory();
+                break;
+            case 2:
+                interpolation = new LanczosInterpolatorFactory();
+                break;
+            default:
+                interpolation = new NLinearInterpolatorFactory();
+                break;
+        }
+
+        PlateCaree<T> plateCaree = new PlateCaree<T>(
+                inputImg, new double[]{centerX, centerY, centerZ},
                 poleAxisLonAngle, poleAxisLatAngle, zeroMeridian,
-                planePosition, scale);
-
-        // project
-        ImageProcessor[] outputIps = new ImageProcessor[nProjections];
-        final double interval = (double) (outerRadius - innerRadius) / nProjections;
-        for (int i = 0; i < nProjections; ++i) {
-            final double inner = innerRadius + i * interval;
-            final double outer = inner + interval;
-            IJ.showStatus(String.format("%s (%d/%d) ...", pluginName, i + 1, nProjections));
-            outputIps[i] = ImageJFunctions.wrap(plateCaree.project(inner, outer), "").getProcessor();
-        }
-
-        // scale
-        final int planeIndex = (int) (Math.round(planePosition * nProjections)) - 1;
-        final int outputWidth = outputIps[planeIndex].getWidth();
-        final int outputHeight = outputIps[planeIndex].getHeight();
-        for (int i = 0; i < nProjections; ++i) {
-            ImageProcessor outputIp = outputIps[i];
-            if (outputIp.getWidth() != outputWidth || outputIp.getHeight() != outputHeight) {
-                outputIp.setInterpolationMethod(ImageProcessor.BICUBIC);
-                outputIp = outputIp.resize(outputWidth, outputHeight, true);
-            }
-            outputIps[i] = outputIp;
-        }
-
-        // stack, in inverse order (outermost first, innermost last)
-        ImageStack outputStack = new ImageStack(outputWidth, outputHeight);
-        for (int i = nProjections - 1; i >= 0; --i) {
-            outputStack.addSlice(outputIps[i]);
-        }
+                planePosition, scale, interpolation);
+        Img<T> outputImg = plateCaree.project(innerRadius, outerRadius, nProjections);
 
         String filenameParams = String.format(
                 "-%s-cx%.2f-cy%.2f-cz%.2f-lo%.2f-la%.2f-zm%.2f-ri%.2f-ro%.2f-pp%.2f-sc%.2f",
                 pluginName, centerX, centerY, centerZ,
                 poleAxisLonAngle, poleAxisLatAngle, zeroMeridian,
                 innerRadius, outerRadius, planePosition, scale);
-        ImagePlus outputImp = new ImagePlus(
-                Util.addToFilename(inputImp.getTitle(), filenameParams), outputStack);
-        outputImp.show();
+        ImageJFunctions.show(outputImg, Util.addToFilename(imageTitle, filenameParams));
     }
 }
