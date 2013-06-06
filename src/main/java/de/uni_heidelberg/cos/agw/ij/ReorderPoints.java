@@ -60,10 +60,8 @@ public class ReorderPoints<I extends RealType<I> & NativeType<I>, C extends Real
             return;
         }
 
-        // TODO: The image ids may include -1, which would break the detection
-        // whether z-dimension or mask is included.
         Img<I> source = ImageJFunctions.wrap(WindowManager.getImage(params[0]));
-        RandomAccessibleInterval<C>[] ras = new RandomAccessibleInterval[params[4] != -1 ? 3 : 2];
+        RandomAccessibleInterval<C>[] ras = new RandomAccessibleInterval[params[4] != 1 ? 3 : 2];
         ras[0] = ImageJFunctions.wrap(WindowManager.getImage(params[2]));
         ras[1] = ImageJFunctions.wrap(WindowManager.getImage(params[3]));
         if (ras.length == 3) {
@@ -71,14 +69,14 @@ public class ReorderPoints<I extends RealType<I> & NativeType<I>, C extends Real
         }
 
         Img<M> mask = null;
-        if (params[1] != -1) {
+        if (params[1] != 1) {
             mask = ImageJFunctions.wrap(WindowManager.getImage(params[1]));
         }
 
         final InterpolatorFactory<DoubleType, NearestNeighborSearch<DoubleType>> interpolation =
                 params[5] == 0
                 ? new NearestNeighborInterpolatorFactory()
-                : new InverseDistanceWeightingInterpolatorFactory();
+                : new InverseDistanceWeightingInterpolatorFactory<DoubleType>();
         final int nn = params[6];
 
         RandomAccessibleInterval<DoubleType> output;
@@ -114,7 +112,7 @@ public class ReorderPoints<I extends RealType<I> & NativeType<I>, C extends Real
         dialog.addChoice("y", titles, titles[0]);
         dialog.addChoice("z", optionalTitles, optionalTitles[optionalTitles.length - 1]);
         dialog.addChoice("Interpolation", interpolations, interpolations[1]);
-        dialog.addNumericField("NN", 10, 0);
+        dialog.addNumericField("Neighbors for interpolation", 10, 0);
         dialog.showDialog();
         if (dialog.wasCanceled()) {
             return null;
@@ -122,7 +120,7 @@ public class ReorderPoints<I extends RealType<I> & NativeType<I>, C extends Real
 
         int sourceId = ids[dialog.getNextChoiceIndex()];
 
-        int maskId = -1;
+        int maskId = 1;
         try {
             maskId = ids[dialog.getNextChoiceIndex()];
         } catch (ArrayIndexOutOfBoundsException ex) {
@@ -131,7 +129,7 @@ public class ReorderPoints<I extends RealType<I> & NativeType<I>, C extends Real
         int xId = ids[dialog.getNextChoiceIndex()];
         int yId = ids[dialog.getNextChoiceIndex()];
 
-        int zId = -1;
+        int zId = 1;
         try {
             zId = ids[dialog.getNextChoiceIndex()];
         } catch (ArrayIndexOutOfBoundsException ex) {
@@ -178,7 +176,7 @@ public class ReorderPoints<I extends RealType<I> & NativeType<I>, C extends Real
                 p[i] = ra.get().getRealDouble();
             }
             for (int i = 0; i < nDimensions; ++i) {
-                if (p[i] >= 0d) {
+                if (p[i] != 0d) {
                     points.add(new RealPoint(p), new DoubleType(sourceCur.get().getRealDouble()));
                     break;
                 }
@@ -199,20 +197,9 @@ public class ReorderPoints<I extends RealType<I> & NativeType<I>, C extends Real
         double[] p = new double[nDimensions];
         while (maskCur.hasNext()) {
             maskCur.fwd();
-            if (maskCur.get().getInteger() == 0) {
-                continue;
-            }
-            for (int i = 0; i < nDimensions; ++i) {
-                RandomAccess<C> ra = ras[i];
-                ra.setPosition(maskCur);
-                p[i] = ra.get().getRealDouble();
-            }
-            sourceRa.setPosition(maskCur);
-            for (int i = 0; i < nDimensions; ++i) {
-                if (p[i] >= 0d) {
-                    points.add(new RealPoint(p), new DoubleType(sourceRa.get().getRealDouble()));
-                    break;
-                }
+            if (maskCur.get().getInteger() > 0) {
+                sourceRa.setPosition(maskCur);
+                points.add(new RealPoint(p), new DoubleType(sourceRa.get().getRealDouble()));
             }
         }
         return points;
