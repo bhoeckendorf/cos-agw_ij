@@ -1,4 +1,4 @@
-/*
+/**
  * This file is part of the COS AGW ImageJ plugin bundle.
  * https://github.com/bhoeckendorf/cos-agw_ij
  *
@@ -57,9 +57,9 @@ public class MakeIsotropic implements PlugInFilter {
         }
 
         final String outputTitle = Util.addToFilename(inputImp.getTitle(),
-                                                      "-isotropic");
+                "-isotropic");
         IJ.run(inputImp, "Scale...",
-               "x=" + anisotropy[0]
+                "x=" + anisotropy[0]
                 + " y=" + anisotropy[1]
                 + " z=" + anisotropy[2]
                 + " width=" + dimensions[0]

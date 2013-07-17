@@ -1,4 +1,4 @@
-/*
+/**
  * This file is part of the COS AGW ImageJ plugin bundle.
  * https://github.com/bhoeckendorf/cos-agw_ij
  *

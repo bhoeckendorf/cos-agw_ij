@@ -132,6 +132,36 @@
                     <target>1.6</target>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>com.mycila.maven-license-plugin</groupId>
+                <artifactId>maven-license-plugin</artifactId>
+                <version>1.10.b1</version>
+                <configuration>
+                    <header>src/etc/header.txt</header>
+                    <strictCheck>true</strictCheck>
+                    <excludes>
+                        <exclude>*.gradle</exclude>
+                        <exclude>**/*.gradle</exclude>
+                        <exclude>*.gitignore</exclude>
+                        <exclude>**/*.gitignore</exclude>
+                        <exclude>*.config</exclude>
+                        <exclude>**/*.config</exclude>
+                        <exclude>*.txt</exclude>
+                        <exclude>**/*.txt</exclude>
+                        <exclude>*.md</exclude>
+                        <exclude>**/*.md</exclude>
+                        <exclude>target/**</exclude>
+                    </excludes>
+                    <useDefaultExcludes>true</useDefaultExcludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
