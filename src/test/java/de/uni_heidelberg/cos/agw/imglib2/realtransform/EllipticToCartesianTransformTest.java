@@ -35,12 +35,12 @@ public class EllipticToCartesianTransformTest {
     public void setUp() {
         // test case, followed by true result
         ellipticToCartesianCases = new double[][]{
-            {0, 0}, {0, 0}
+                {0, 0}, {0, 0}
         };
 
         // test case, followed by true result
         cartesianToEllipticCases = new double[][]{
-            {0, 0}, {0, 0}
+                {0, 0}, {0, 0}
         };
     }
 
@@ -65,16 +65,10 @@ public class EllipticToCartesianTransformTest {
     public void testApply_doubleArr_doubleArr() {
         System.out.println("apply(double[], double[])");
         final EllipticToCartesianTransform instance = new EllipticToCartesianTransform();
-        final double[] source = new double[instance.numSourceDimensions()];
         final double[] target = new double[instance.numTargetDimensions()];
-        final double[] truth = new double[instance.numTargetDimensions()];
         for (int i = 0; i < ellipticToCartesianCases.length; i += 2) {
-            for (int j = 0; j < instance.numSourceDimensions(); ++j) {
-                source[j] = ellipticToCartesianCases[i][j];
-                truth[j] = ellipticToCartesianCases[i + 1][j];
-            }
-            instance.apply(source, target);
-            Assert.assertArrayEquals(truth, target, PREC_DOUBLE);
+            instance.apply(ellipticToCartesianCases[i], target);
+            Assert.assertArrayEquals(ellipticToCartesianCases[i + 1], target, PREC_DOUBLE);
         }
     }
 
@@ -85,15 +79,11 @@ public class EllipticToCartesianTransformTest {
         final RealLocalizable source = new RealPoint(instance.numSourceDimensions());
         final RealPositionable target = new RealPoint(instance.numTargetDimensions());
         final double[] targetArray = new double[instance.numTargetDimensions()];
-        final double[] truth = new double[instance.numTargetDimensions()];
         for (int i = 0; i < ellipticToCartesianCases.length; i += 2) {
-            for (int j = 0; j < instance.numSourceDimensions(); ++j) {
-                truth[j] = ellipticToCartesianCases[i + 1][j];
-            }
             ((RealPoint) source).setPosition(ellipticToCartesianCases[i]);
             instance.apply(source, target);
             ((RealPoint) target).localize(targetArray);
-            Assert.assertArrayEquals(truth, targetArray, PREC_DOUBLE);
+            Assert.assertArrayEquals(ellipticToCartesianCases[i + 1], targetArray, PREC_DOUBLE);
         }
     }
 }
