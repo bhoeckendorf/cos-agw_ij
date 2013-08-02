@@ -40,3 +40,18 @@ doc/
 # Maven output #
 ################
 target/
+
+# Gradle & ouptut #
+###################
+.gradle
+build/
+
+# Hidden files & folders except .gitignore #
+############################################
+.*
+!/.gitignore
+
+# IntelliJ IDEA #
+#################
+*.iml
+.idea/
