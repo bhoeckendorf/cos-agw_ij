@@ -25,48 +25,71 @@ import net.imglib2.realtransform.InvertibleRealTransform;
 
 public class GeographicToCartesianTransform extends SphericalToCartesianTransform {
 
-    private final double HALF_PI = 0.5 * Math.PI;
-    private final double[] tempSource = new double[3];
-    private final double[] tempTarget = new double[3];
+    private final double[] temp0 = new double[3];
+    private final double[] temp1 = new double[3];
+    private final GeographicToSphericalTransform geographicToSpherical;
     private final InverseRealTransform inverse;
 
     public GeographicToCartesianTransform() {
+        geographicToSpherical = new GeographicToSphericalTransform();
         inverse = new InverseRealTransform(this);
     }
 
     @Override
-    public void apply(double[] source, double[] target) {
-        geographicToSpherical(source[0], source[1], source[2], tempSource);
-        super.apply(tempSource, target);
+    public void apply(final double[] source, final double[] target) {
+        geographicToSpherical.apply(source, temp0);
+        super.apply(temp0, target);
     }
 
     @Override
-    public void apply(float[] source, float[] target) {
-        geographicToSpherical(source[0], source[1], source[2], tempSource);
-        super.apply(tempSource, tempTarget);
-        for (int i = 0; i < tempTarget.length; ++i) {
-            target[i] = (float) tempTarget[i];
+    public void apply(final float[] source, final float[] target) {
+        for (int i = 0; i < temp0.length; ++i) {
+            temp0[i] = source[i];
+        }
+        geographicToSpherical.apply(temp0, temp1);
+        super.apply(temp1, temp0);
+        for (int i = 0; i < temp0.length; ++i) {
+            target[i] = (float) temp0[i];
         }
     }
 
     @Override
-    public void apply(RealLocalizable source, RealPositionable target) {
-        source.localize(tempSource);
-        geographicToSpherical(tempSource[0], tempSource[1], tempSource[2], tempSource);
-        super.apply(tempSource, tempTarget);
-        target.setPosition(tempTarget);
+    public void apply(final RealLocalizable source, final RealPositionable target) {
+        source.localize(temp0);
+        geographicToSpherical.apply(temp0, temp1);
+        super.apply(temp1, temp0);
+        target.setPosition(temp0);
     }
 
-    private void geographicToSpherical(final double radius, final double polar, final double azimuth, final double[] target) {
-        target[0] = radius;
-        target[1] = polar + HALF_PI;
-        target[2] = azimuth + Math.PI;
+    @Override
+    public void applyInverse(final double[] source, final double[] target) {
+        geographicToSpherical.applyInverse(temp0, target);
+        super.applyInverse(source, temp0);
     }
 
-    private void sphericalToGeographic(final double radius, final double polar, final double azimuth, final double[] target) {
-        target[0] = radius;
-        target[1] = polar - HALF_PI;
-        target[2] = azimuth - Math.PI;
+    @Override
+    public void applyInverse(final float[] source, final float[] target) {
+        for (int i = 0; i < temp0.length; ++i) {
+            temp0[i] = target[i];
+        }
+        geographicToSpherical.applyInverse(temp1, temp0);
+        super.applyInverse(temp0, temp1);
+        for (int i = 0; i < temp0.length; ++i) {
+            source[i] = (float) temp0[i];
+        }
+    }
+
+    @Override
+    public void applyInverse(final RealPositionable source, final RealLocalizable target) {
+        target.localize(temp0);
+        geographicToSpherical.applyInverse(temp1, temp0);
+        super.applyInverse(temp0, temp1);
+        source.setPosition(temp0);
+    }
+
+    @Override
+    public int numSourceDimensions() {
+        return geographicToSpherical.numSourceDimensions();
     }
 
     @Override
