@@ -51,7 +51,7 @@
         <dependency>
             <groupId>net.imagej</groupId>
             <artifactId>ij</artifactId>
-            <version>1.47t</version>
+            <version>1.48a</version>
             <type>jar</type>
         </dependency>
         <dependency>
@@ -151,6 +151,7 @@
                         <exclude>*.md</exclude>
                         <exclude>**/*.md</exclude>
                         <exclude>target/**</exclude>
+                        <exclude>.idea/**</exclude>
                     </excludes>
                     <useDefaultExcludes>true</useDefaultExcludes>
                 </configuration>
