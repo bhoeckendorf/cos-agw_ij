@@ -77,8 +77,14 @@ public class SphericalToCartesianTransform implements InvertibleRealTransform {
         target[2] = radius * Math.cos(polar);
     }
 
+    // TODO: Resulting spherical coordinates should be unique and all positive.
     private void cartesianToSpherical(final double x, final double y, final double z, final double[] target) {
         target[0] = Math.sqrt(x * x + y * y + z * z);
+        if (target[0] == 0) {
+            target[1] = 0;
+            target[2] = 0; // This is needed to avoid division by 0 below.
+            return;
+        }
         target[1] = Math.atan2(y, x);
         target[2] = Math.acos(z / target[0]);
     }
