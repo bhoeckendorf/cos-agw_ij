@@ -229,7 +229,7 @@ class Transformation<T extends NumericType<T> & RealType<T> & NativeType<T>, V e
                     stack.setVoxel((int) Math.round(cylindrical[0]), (int) Math.round(cylindrical[1]), (int) Math.round(cylindrical[2]), inputRa.get().getRealDouble());
                 }
             }
-            IJ.showProgress(z + 1, (int) outputDimensions[0]);
+            IJ.showProgress(z + 1, (int) outputDimensions[2]);
         }
         return outputImp;
     }
