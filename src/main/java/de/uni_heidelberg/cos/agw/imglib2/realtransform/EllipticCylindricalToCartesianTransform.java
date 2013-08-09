@@ -20,16 +20,9 @@ package de.uni_heidelberg.cos.agw.imglib2.realtransform;
 
 import net.imglib2.RealLocalizable;
 import net.imglib2.RealPositionable;
-import net.imglib2.realtransform.InverseRealTransform;
-import net.imglib2.realtransform.InvertibleRealTransform;
+import net.imglib2.realtransform.RealTransform;
 
 public class EllipticCylindricalToCartesianTransform extends EllipticToCartesianTransform {
-
-    private final InverseRealTransform inverse;
-
-    public EllipticCylindricalToCartesianTransform() {
-        inverse = new InverseRealTransform(this);
-    }
 
     @Override
     public void apply(double[] source, double[] target) {
@@ -50,24 +43,6 @@ public class EllipticCylindricalToCartesianTransform extends EllipticToCartesian
     }
 
     @Override
-    public void applyInverse(double[] source, double[] target) {
-        super.applyInverse(source, target);
-        source[2] = target[2];
-    }
-
-    @Override
-    public void applyInverse(float[] source, float[] target) {
-        super.applyInverse(source, target);
-        source[2] = target[2];
-    }
-
-    @Override
-    public void applyInverse(RealPositionable source, RealLocalizable target) {
-        super.applyInverse(source, target);
-        source.setPosition(target.getDoublePosition(2), 2);
-    }
-
-    @Override
     public int numSourceDimensions() {
         return 3;
     }
@@ -78,12 +53,7 @@ public class EllipticCylindricalToCartesianTransform extends EllipticToCartesian
     }
 
     @Override
-    public InvertibleRealTransform inverse() {
-        return inverse;
-    }
-
-    @Override
-    public InvertibleRealTransform copy() {
+    public RealTransform copy() {
         return this;
     }
 }
