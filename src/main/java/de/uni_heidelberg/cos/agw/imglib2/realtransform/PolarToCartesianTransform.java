@@ -34,16 +34,16 @@ public class PolarToCartesianTransform implements InvertibleRealTransform {
     }
 
     @Override
-    public void apply(final float[] source, final float[] target) {
-        polarToCartesian(source[0], source[1], temp);
-        for (int i = 0; i < temp.length; ++i) {
-            target[i] = (float) temp[i];
-        }
+    public void apply(final double[] source, final double[] target) {
+        polarToCartesian(source[0], source[1], target);
     }
 
     @Override
-    public void apply(final double[] source, final double[] target) {
-        polarToCartesian(source[0], source[1], target);
+    public void apply(final float[] source, final float[] target) {
+        polarToCartesian(source[0], source[1], temp);
+        for (int d = 0; d < temp.length; ++d) {
+            target[d] = (float) temp[d];
+        }
     }
 
     @Override
@@ -51,16 +51,8 @@ public class PolarToCartesianTransform implements InvertibleRealTransform {
         polarToCartesian(source.getDoublePosition(0), source.getDoublePosition(1), temp);
         // Manual copy prevents ArrayIndexOutOfBoundsException when target has 3 dimensions,
         // as in CylindricalCoordinates.
-        for (int i = 0; i < temp.length; ++i) {
-            target.setPosition(temp[i], i);
-        }
-    }
-
-    @Override
-    public void applyInverse(final float[] source, final float[] target) {
-        cartesianToPolar(target[0], target[1], temp);
-        for (int i = 0; i < temp.length; ++i) {
-            source[i] = (float) temp[i];
+        for (int d = 0; d < temp.length; ++d) {
+            target.setPosition(temp[d], d);
         }
     }
 
@@ -70,12 +62,20 @@ public class PolarToCartesianTransform implements InvertibleRealTransform {
     }
 
     @Override
+    public void applyInverse(final float[] source, final float[] target) {
+        cartesianToPolar(target[0], target[1], temp);
+        for (int d = 0; d < temp.length; ++d) {
+            source[d] = (float) temp[d];
+        }
+    }
+
+    @Override
     public void applyInverse(final RealPositionable source, final RealLocalizable target) {
         cartesianToPolar(target.getDoublePosition(0), target.getDoublePosition(1), temp);
         // Manual copy prevents ArrayIndexOutOfBoundsException when target has 3 dimensions,
         // as in CylindricalCoordinates.
-        for (int i = 0; i < temp.length; ++i) {
-            source.setPosition(temp[i], i);
+        for (int d = 0; d < temp.length; ++d) {
+            source.setPosition(temp[d], d);
         }
     }
 
