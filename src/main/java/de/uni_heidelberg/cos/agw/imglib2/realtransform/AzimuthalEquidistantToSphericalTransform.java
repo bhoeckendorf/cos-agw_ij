@@ -67,13 +67,14 @@ public class AzimuthalEquidistantToSphericalTransform implements RealTransform, 
         target.setPosition(temp);
     }
 
+    // ToDo: The += Math.PI correction of polar and azimuth should not be required.
     private void azimuthalEquidistantToSpherical(final double x, final double y, final double z, final double[] target) {
         target[0] = outerRadius - z * radiusInverval / azimuthalEquidistantDimensions[2];
         planarCartesian[0] = x - 0.5d * azimuthalEquidistantDimensions[0];
         planarCartesian[1] = y - 0.5d * azimuthalEquidistantDimensions[1];
         polarToCartesianTransform.applyInverse(planarPolar, planarCartesian);
-        target[1] = planarPolar[0] / maxPlanarRadius * Math.PI;
-        target[2] = planarPolar[1];
+        target[1] = planarPolar[0] / maxPlanarRadius * Math.PI + Math.PI;
+        target[2] = planarPolar[1] + Math.PI;
     }
 
     @Override
