@@ -94,7 +94,7 @@ public class MapTransform<T extends NumericType<T> & RealType<T> & NativeType<T>
         dialog.addNumericField("Outer_radius", outerRadius, 2, 7, "voxels");
         dialog.addNumericField("Standard_radius_offset", stdRadiusOffset, 2, 7, "0-1");
         dialog.addNumericField("Scale", scale, 2, 7, "x");
-        dialog.addChoice("3D_interpolation", interpolations, interpolations[interpolationIndex]);
+        dialog.addChoice("Interpolation", interpolations, interpolations[interpolationIndex]);
         dialog.addCheckbox("ImageJ1_output", doMakeImageJ1Output);
         dialog.addNumericField("Cylinder_height", cylinderHeight, 2, 7, "voxels");
         dialog.showDialog();
@@ -141,7 +141,7 @@ public class MapTransform<T extends NumericType<T> & RealType<T> & NativeType<T>
                 interpolation = new NLinearInterpolatorFactory<T>();
                 break;
         }
-        final RealRandomAccess<T> inputRa = Views.interpolate(inputImg, interpolation).realRandomAccess();
+        final RealRandomAccess<T> inputRa = Views.interpolate(Views.extendZero(inputImg), interpolation).realRandomAccess();
 
         V transform = null;
         String transformName;
