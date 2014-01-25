@@ -1,36 +1,10 @@
-/**
- * This file is part of the COS AGW ImageJ plugin bundle.
- * https://github.com/bhoeckendorf/cos-agw_ij
- *
- * Copyright 2012, 2013  B. Hoeckendorf <b.hoeckendorf at web dot de>
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package de.uni_heidelberg.cos.agw.ij;
 
 import ij.IJ;
 import ij.WindowManager;
 import ij.gui.GenericDialog;
 import ij.plugin.PlugIn;
-import java.util.Arrays;
-import net.imglib2.Cursor;
-import net.imglib2.Interval;
-import net.imglib2.IterableInterval;
-import net.imglib2.RandomAccess;
-import net.imglib2.RandomAccessible;
-import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.RealPoint;
-import net.imglib2.RealRandomAccessible;
+import net.imglib2.*;
 import net.imglib2.collection.KDTree;
 import net.imglib2.collection.RealPointSampleList;
 import net.imglib2.img.Img;
@@ -47,6 +21,8 @@ import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.DoubleType;
 import net.imglib2.view.Views;
+
+import java.util.Arrays;
 
 // TODO: Some of this only seems to work when using DoubleType.
 public class ReorderPoints<I extends RealType<I> & NativeType<I>, C extends RealType<C> & NativeType<C>, M extends IntegerType<M> & NativeType<M>> implements PlugIn {
@@ -73,8 +49,7 @@ public class ReorderPoints<I extends RealType<I> & NativeType<I>, C extends Real
             mask = ImageJFunctions.wrap(WindowManager.getImage(params[1]));
         }
 
-        final InterpolatorFactory<DoubleType, NearestNeighborSearch<DoubleType>> interpolation =
-                params[5] == 0
+        final InterpolatorFactory<DoubleType, NearestNeighborSearch<DoubleType>> interpolation = params[5] == 0
                 ? new NearestNeighborInterpolatorFactory()
                 : new InverseDistanceWeightingInterpolatorFactory<DoubleType>();
         final int nn = params[6];

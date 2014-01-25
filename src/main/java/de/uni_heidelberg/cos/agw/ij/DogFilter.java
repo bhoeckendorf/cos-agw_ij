@@ -1,21 +1,3 @@
-/**
- * This file is part of the COS AGW ImageJ plugin bundle.
- * https://github.com/bhoeckendorf/cos-agw_ij
- *
- * Copyright 2012, 2013  B. Hoeckendorf <b.hoeckendorf at web dot de>
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package de.uni_heidelberg.cos.agw.ij;
 
 import de.uni_heidelberg.cos.agw.ij.util.Util;
@@ -34,8 +16,7 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
 
-public class DogFilter<T extends NumericType<T> & NativeType<T> & RealType<T>>
-        implements PlugInFilter {
+public class DogFilter<T extends NumericType<T> & NativeType<T> & RealType<T>> implements PlugInFilter {
 
     private ImagePlus inputImp;
 
@@ -60,13 +41,12 @@ public class DogFilter<T extends NumericType<T> & NativeType<T> & RealType<T>>
         final double sigma1 = dialog.getNextNumber();
         final double sigma2 = dialog.getNextNumber();
         final boolean useAnisotropicKernel = dialog.getNextBoolean();
-        ImagePlus resultImp = run(inputImp, sigma1, sigma2,
-                useAnisotropicKernel);
+        ImagePlus resultImp = run(inputImp, sigma1, sigma2, useAnisotropicKernel);
         resultImp.show();
     }
 
     public ImagePlus run(final ImagePlus imp, final double sigma1,
-            final double sigma2, final boolean useAnisotropicKernel) {
+                         final double sigma2, final boolean useAnisotropicKernel) {
         final int currentPlane = imp.getCurrentSlice();
         final Calibration calibration = imp.getCalibration();
         final Img<T> inputImg = ImagePlusAdapter.wrap(imp);
@@ -82,8 +62,7 @@ public class DogFilter<T extends NumericType<T> & NativeType<T> & RealType<T>>
         }
 
         ImageCalculator imageCalculator = new ImageCalculator();
-        ImagePlus resultImp = imageCalculator.run("Subtract create stack",
-                sigma1Imp, sigma2Imp);
+        ImagePlus resultImp = imageCalculator.run("Subtract create stack", sigma1Imp, sigma2Imp);
         sigma1Imp.close();
         sigma2Imp.close();
 
@@ -102,7 +81,7 @@ public class DogFilter<T extends NumericType<T> & NativeType<T> & RealType<T>>
     }
 
     private ImagePlus gaussianBlur(final Img<T> img, final double sigma,
-            final double[] anisotropy) {
+                                   final double[] anisotropy) {
         final double[] sigmaArray = getSigma(sigma, img.numDimensions(),
                 anisotropy);
         final Img<T> output = Gauss.inDouble(sigmaArray, img);
@@ -111,7 +90,7 @@ public class DogFilter<T extends NumericType<T> & NativeType<T> & RealType<T>>
 
     private double[] getAnisotropy(final Calibration calibration) {
         final double[] anisotropy = {calibration.pixelWidth,
-            calibration.pixelHeight, calibration.pixelDepth};
+                calibration.pixelHeight, calibration.pixelDepth};
         double smallest = anisotropy[0];
         for (int i = 1; i < anisotropy.length; ++i) {
             if (anisotropy[i] < smallest) {
@@ -132,8 +111,7 @@ public class DogFilter<T extends NumericType<T> & NativeType<T> & RealType<T>>
         return sigmaArray;
     }
 
-    private double[] getSigma(final double sigma, final int ndimensions,
-            final double[] anisotropy) {
+    private double[] getSigma(final double sigma, final int ndimensions, final double[] anisotropy) {
         final double[] sigmaArray = getSigma(sigma, ndimensions);
         for (int i = 0; i < sigmaArray.length; ++i) {
             sigmaArray[i] = sigmaArray[i] / anisotropy[i];

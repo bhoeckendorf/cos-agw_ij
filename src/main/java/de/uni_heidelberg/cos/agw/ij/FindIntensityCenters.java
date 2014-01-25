@@ -1,21 +1,3 @@
-/**
- * This file is part of the COS AGW ImageJ plugin bundle.
- * https://github.com/bhoeckendorf/cos-agw_ij
- *
- * Copyright 2012, 2013  B. Hoeckendorf <b.hoeckendorf at web dot de>
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package de.uni_heidelberg.cos.agw.ij;
 
 import de.uni_heidelberg.cos.agw.ij.util.Util;
@@ -27,13 +9,10 @@ import ij.measure.Calibration;
 import ij.measure.ResultsTable;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
 import javax.vecmath.Point3d;
 import javax.vecmath.Point3i;
+import java.util.*;
 
 /**
  * Computes the average 2D or 3D position of discrete intensities in an image;
@@ -83,15 +62,13 @@ public class FindIntensityCenters implements PlugInFilter {
                 resultsTable = getResultsTable(centerMap);
                 title += "pixels";
             } else {
-                resultsTable = getResultsTable(centerMap,
-                        inputImp.getCalibration());
+                resultsTable = getResultsTable(centerMap, inputImp.getCalibration());
                 title += inputImp.getCalibration().getUnits();
             }
             resultsTable.show(title);
         }
         if (doDisplayImage) {
-            int[] dimensions = new int[]{inputImp.getWidth(),
-                inputImp.getHeight(), inputImp.getStackSize()};
+            int[] dimensions = new int[]{inputImp.getWidth(), inputImp.getHeight(), inputImp.getStackSize()};
             ImagePlus outputImp = getPlot(centerMap, pointRadius, dimensions);
             outputImp.show();
         }
@@ -152,7 +129,7 @@ public class FindIntensityCenters implements PlugInFilter {
      * Returns an image showing the center positions. Center positions are drawn
      * as squares with a size given as pointRadius.
      *
-     * @param imp input
+     * @param imp         input
      * @param pointRadius the radius of drawn center positions
      * @return image showing center positions
      */
@@ -165,22 +142,22 @@ public class FindIntensityCenters implements PlugInFilter {
             centerMap = getCenterMap(imp);
         }
         int[] dimensions = new int[]{imp.getWidth(), imp.getHeight(),
-            imp.getStackSize()};
+                imp.getStackSize()};
         ImagePlus plotImp = getPlot(centerMap, pointRadius, dimensions);
         return plotImp;
     }
 
     /**
-     * @see FindIntensityCenters#getPlot(ij.ImagePlus, int)
-     * @param pointMap value, center map as produced by
-     * {@link #getCenterMap(ij.ImagePlus)}
+     * @param pointMap    value, center map as produced by
+     *                    {@link #getCenterMap(ij.ImagePlus)}
      * @param pointRadius the radius of drawn center positions
-     * @param dimensions the dimensions of the output image {x, y, z}, should be
-     * identical to the ones of input image
+     * @param dimensions  the dimensions of the output image {x, y, z}, should be
+     *                    identical to the ones of input image
      * @return image showing center positions
+     * @see FindIntensityCenters#getPlot(ij.ImagePlus, int)
      */
     private ImagePlus getPlot(final Map<Integer, Point3d> pointMap,
-            final int pointRadius, final int[] dimensions) {
+                              final int pointRadius, final int[] dimensions) {
         final ImageStack outputStack = new ImageStack(dimensions[0],
                 dimensions[1]);
         for (int z = 1; z <= dimensions[2]; ++z) {
@@ -215,13 +192,13 @@ public class FindIntensityCenters implements PlugInFilter {
     /**
      * Returns a ResultsTable holding the value and center positions.
      *
-     * @param imp input
+     * @param imp         input
      * @param doCalibrate whether the center positions should be calibrated to
-     * real world dimensions or remain as pixel grid positions
+     *                    real world dimensions or remain as pixel grid positions
      * @return table
      */
     public ResultsTable getResultsTable(final ImagePlus imp,
-            final boolean doCalibrate) {
+                                        final boolean doCalibrate) {
         if (imp != inputImp) {
             inputImp = imp;
             centerMap = null;
@@ -237,12 +214,11 @@ public class FindIntensityCenters implements PlugInFilter {
     }
 
     /**
+     * @param pointMap value, center map as produced by
+     *                 {@link #getCenterMap(ij.ImagePlus)}
+     * @return table
      * @see ResultsTable#getResultsTable(ij.ImagePlus, boolean). Table shows
      * non-calibrated pixel grid positions
-     *
-     * @param pointMap value, center map as produced by
-     * {@link #getCenterMap(ij.ImagePlus)}
-     * @return table
      */
     private ResultsTable getResultsTable(final Map<Integer, Point3d> pointMap) {
         ResultsTable table = new ResultsTable();
@@ -263,15 +239,14 @@ public class FindIntensityCenters implements PlugInFilter {
     }
 
     /**
+     * @param pointMap value, center map as produced by
+     *                 {@link #getCenterMap(ij.ImagePlus)}
+     * @return table
      * @see ResultsTable#getResultsTable(ij.ImagePlus, boolean). Table shows
      * calibrated positions.
-     *
-     * @param pointMap value, center map as produced by
-     * {@link #getCenterMap(ij.ImagePlus)}
-     * @return table
      */
     private ResultsTable getResultsTable(final Map<Integer, Point3d> pointMap,
-            final Calibration calibration) {
+                                         final Calibration calibration) {
         ResultsTable table = new ResultsTable();
         table.setPrecision(2);
         List<Integer> values = new ArrayList<Integer>(pointMap.keySet());
