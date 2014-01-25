@@ -11,7 +11,7 @@ Detailed documentation is available on the [Wiki](https://github.com/bhoeckendor
 
   - [![Build Status](https://buildhive.cloudbees.com/job/bhoeckendorf/job/cos-agw_ij/badge/icon)](https://buildhive.cloudbees.com/job/bhoeckendorf/job/cos-agw_ij/)
   
-  - Last successful build: [cos-agw_ij--SNAPSHOT.jar](https://buildhive.cloudbees.com/view/My%20Repositories/job/bhoeckendorf/job/cos-agw_ij/lastSuccessfulBuild/de.uni_heidelberg.cos.agw$cos-agw_ij/artifact/de.uni_heidelberg.cos.agw/cos-agw_ij/-SNAPSHOT/cos-agw_ij--SNAPSHOT.jar)
+  - Last successful build: [cos-agw_ij--SNAPSHOT.jar](https://buildhive.cloudbees.com/job/bhoeckendorf/job/cos-agw_ij/ws/build/libs/cos-agw_ij--SNAPSHOT.jar)
 
 
 ## Included plugins ##
