@@ -1,5 +1,6 @@
 apply plugin: 'java'
-apply plugin: 'maven'
+apply plugin: 'wrapper'
+apply plugin: 'maven-publish'
 
 group = 'de.uni_heidelberg.cos.agw'
 version = '-SNAPSHOT'
@@ -43,8 +44,4 @@ repositories {
         url 'http://maven.imagej.net/content/repositories/thirdparty'
     }
     mavenCentral()
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '1.10'
 }
