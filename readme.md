@@ -57,8 +57,8 @@ Detailed documentation is available on the [Wiki](https://github.com/bhoeckendor
 
 ----------
 
-The COS AGW ImageJ plugin bundle is an open source project hosted on GitHub.  
+The COS AGW ImageJ plugin bundle is an open source project hosted on GitHub:
 https://github.com/bhoeckendorf/cos-agw_ij
 
-It is licensed under the Apache License, Version 2.0.  
-http://www.apache.org/licenses/LICENSE-2.0
+It is licensed under the [MIT License](http://mit-license.org).
+See license.txt for details.
